@@ -1,0 +1,93 @@
+[
+  {
+    "id": "sawtelle-japantown",
+    "name": "Sawtelle Japantown",
+    "blurb": "Japanese American gardeners settled here from 1910. By 1941 the neighborhood held 26 nurseries and eight boarding houses that worked as a gardeners' college. Los Angeles made the name official in 2015.",
+    "lng": -118.4425,
+    "lat": 34.0396
+  },
+  {
+    "id": "little-tokyo",
+    "name": "Little Tokyo",
+    "blurb": "A National Historic District since 1986, and the home of the Japanese American National Museum.",
+    "lng": -118.2399,
+    "lat": 34.0485
+  },
+  {
+    "id": "monterey-park",
+    "name": "Monterey Park",
+    "blurb": "The center of the San Gabriel Valley's Chinese American community since the 1970s.",
+    "lng": -118.1298,
+    "lat": 34.0515
+  },
+  {
+    "id": "alhambra",
+    "name": "Alhambra",
+    "blurb": "Sits next to Monterey Park in the stretch of the San Gabriel Valley people call the 626.",
+    "lng": -118.1271,
+    "lat": 34.093
+  },
+  {
+    "id": "historic-filipinotown",
+    "name": "Historic Filipinotown",
+    "blurb": "Named by Los Angeles City Council in 2002, along the stretch of Temple Street west of Echo Park.",
+    "lng": -118.2695,
+    "lat": 34.0696
+  },
+  {
+    "id": "koreatown-la",
+    "name": "Koreatown",
+    "blurb": "The densest neighborhood in Los Angeles, and the largest Korean community outside Korea.",
+    "lng": -118.3054,
+    "lat": 34.0618
+  },
+  {
+    "id": "torrance",
+    "name": "Torrance",
+    "blurb": "The South Bay's Japanese American center, anchored by the Japanese corporate offices that moved here from the 1970s.",
+    "lng": -118.3414,
+    "lat": 33.8371
+  },
+  {
+    "id": "cerritos",
+    "name": "Cerritos",
+    "blurb": "One of the most ethnically diverse cities in the country, with no single majority group.",
+    "lng": -118.0539,
+    "lat": 33.8644
+  },
+  {
+    "id": "little-saigon",
+    "name": "Little Saigon",
+    "blurb": "The largest Vietnamese community outside Vietnam, spread across Westminster and Garden Grove.",
+    "lng": -117.9684,
+    "lat": 33.7448
+  },
+  {
+    "id": "japantown-sf",
+    "name": "Japantown, San Francisco",
+    "blurb": "One of three Japantowns left in the United States. The other two are in San Jose and Los Angeles.",
+    "lng": -122.4298,
+    "lat": 37.7856
+  },
+  {
+    "id": "japantown-sj",
+    "name": "Japantown, San Jose",
+    "blurb": "The only Japantown in the country that has never been displaced from its original blocks.",
+    "lng": -121.8942,
+    "lat": 37.349
+  },
+  {
+    "id": "chinatown-nyc",
+    "name": "Chinatown, Manhattan",
+    "blurb": "The largest concentration of Chinese people in the Western Hemisphere.",
+    "lng": -73.9963,
+    "lat": 40.7165
+  },
+  {
+    "id": "cid-seattle",
+    "name": "Chinatown-International District",
+    "blurb": "Seattle's Chinese, Japanese, Filipino and Vietnamese communities share one historic district.",
+    "lng": -122.3225,
+    "lat": 47.5984
+  }
+]

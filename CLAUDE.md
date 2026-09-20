@@ -109,3 +109,13 @@ Whenever you write or change UI — components, pages, layouts, styles, product 
 Load the two or three that actually apply to the change; load `better-interface` for anything screen-sized or larger. Their rules sit under the design preferences above — where a skill conflicts with something I've stated here, mine wins, and say so rather than silently picking one. This covers every skill, not just the `better-*` ones: `artifact-design`, `frontend-design`, `dataviz` and anything else that arrives with the session are subordinate to this file.
 
 `interface-review`, `break`, and `variant` are mine to invoke; don't run them on your own.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

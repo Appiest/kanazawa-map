@@ -1,0 +1,91 @@
+@import "tailwindcss";
+@import "./tokens.generated.css";
+
+/* Semantic tokens. The only tier a component may reference.
+   Primitives live in styles/palette.ts and are generated into tokens.generated.css. */
+@theme {
+  --color-bg-page: var(--color-paper-100);
+  --color-bg-surface: var(--color-paper-50);
+  --color-bg-sunken: var(--color-paper-200);
+  --color-bg-hover: var(--color-paper-200);
+  --color-bg-inverse: var(--color-paper-900);
+
+  --color-text-primary: var(--color-paper-900);
+  --color-text-body: var(--color-paper-700);
+  --color-text-secondary: var(--color-paper-650);
+  --color-text-disabled: var(--color-paper-500);
+  --color-text-inverse: var(--color-paper-50);
+
+  --color-separator: var(--color-paper-300);
+  --color-field-border: var(--color-paper-400);
+  --color-focus-ring: var(--color-clay-700);
+
+  /* Green carries exactly one meaning in this product: a person. */
+  --color-person: var(--color-green-600);
+  --color-person-strong: var(--color-green-700);
+  --color-person-soft: var(--color-green-200);
+  --color-person-text: var(--color-green-700);
+
+  --color-map-land: var(--color-paper-100);
+  --color-map-water: var(--color-water-300);
+  --color-map-road-hairline: var(--color-paper-400);
+  --color-map-road-major: var(--color-paper-500);
+  --color-map-label: var(--color-paper-650);
+  --color-map-label-halo: var(--color-paper-100);
+  --color-map-anchor: var(--color-paper-600);
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+
+  --radius-tag: 2px;
+  --radius-control: 8px;
+  --radius-sheet: 14px;
+
+  --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-press: cubic-bezier(0.4, 0, 0.2, 1);
+  --animate-plant: plant 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes plant {
+    0%   { transform: translateY(-14px) scaleY(0.82); opacity: 0; }
+    60%  { transform: translateY(1px) scaleY(1.04); opacity: 1; }
+    100% { transform: translateY(0) scaleY(1); opacity: 1; }
+  }
+}
+
+/* The basemap is a paper survey. A dark variant would be a different design,
+   not a palette inversion, so this opts out rather than half-inverting. */
+:root {
+  color-scheme: light;
+}
+
+html {
+  background-color: var(--color-bg-page);
+}
+
+body {
+  color: var(--color-text-body);
+  font-family: var(--font-sans);
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Figures that align in a column. Prose does not get this. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
