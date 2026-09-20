@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Map as MapLibreMap, addProtocol, setWorkerUrl } from "maplibre-gl";
+import { AttributionControl, Map as MapLibreMap, addProtocol, setWorkerUrl } from "maplibre-gl";
 import { Protocol } from "pmtiles";
 import { buildMapStyle } from "@/styles/map-style";
 import { INITIAL_BOUNDS, MAX_BOUNDS } from "@/lib/config";
@@ -75,12 +75,14 @@ function createMap(container: HTMLDivElement): MapLibreMap {
     maxBounds: MAX_BOUNDS,
     minZoom: 2.5,
     maxZoom: 18,
-    attributionControl: { compact: true },
+    attributionControl: false,
     dragRotate: false,
     pitchWithRotate: false,
     fadeDuration: 120,
   });
   map.touchZoomRotate.disableRotation();
+  // Out of the corner the primary action occupies.
+  map.addControl(new AttributionControl({ compact: true }), "top-right");
   return map;
 }
 

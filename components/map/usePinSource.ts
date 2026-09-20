@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { GeoJSONSource, Map as MapLibreMap } from "maplibre-gl";
 import { ANCHOR_SOURCE_ID, PIN_SOURCE_ID } from "@/lib/config";
 import type { PinWorkerResponse } from "@/lib/pins/decode.worker";
@@ -49,11 +49,13 @@ export function usePinSource(map: MapLibreMap | null, anchors: AnchorPlace[]) {
   const [count, setCount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [layersReady, setLayersReady] = useState(false);
+  const workerRef = useRef<Worker | null>(null);
 
   useEffect(() => {
     if (!map) return;
 
     const worker = new Worker(new URL("../../lib/pins/decode.worker.ts", import.meta.url));
+    workerRef.current = worker;
 
     worker.addEventListener("message", (event: MessageEvent<PinWorkerResponse>) => {
       if (!event.data.ok) {
@@ -73,9 +75,15 @@ export function usePinSource(map: MapLibreMap | null, anchors: AnchorPlace[]) {
 
     return () => {
       worker.terminate();
+      workerRef.current = null;
       setLayersReady(false);
     };
   }, [map, anchors]);
 
-  return { count, error, layersReady };
+  /** Re-reads the payload so a pin planted just now shows up straight away. */
+  const refresh = useCallback(() => {
+    workerRef.current?.postMessage({ url: `/api/pins?at=${Date.now()}` });
+  }, []);
+
+  return { count, error, layersReady, refresh };
 }
