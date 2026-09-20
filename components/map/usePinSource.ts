@@ -48,6 +48,7 @@ function addSourcesAndLayers(map: MapLibreMap, anchors: AnchorPlace[]) {
 export function usePinSource(map: MapLibreMap | null, anchors: AnchorPlace[]) {
   const [count, setCount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [layersReady, setLayersReady] = useState(false);
 
   useEffect(() => {
     if (!map) return;
@@ -66,11 +67,15 @@ export function usePinSource(map: MapLibreMap | null, anchors: AnchorPlace[]) {
 
     whenStyleReady(map, () => {
       addSourcesAndLayers(map, anchors);
+      setLayersReady(true);
       worker.postMessage({ url: "/api/pins" });
     });
 
-    return () => worker.terminate();
+    return () => {
+      worker.terminate();
+      setLayersReady(false);
+    };
   }, [map, anchors]);
 
-  return { count, error };
+  return { count, error, layersReady };
 }
