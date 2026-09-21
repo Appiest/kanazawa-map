@@ -39,17 +39,40 @@ BBOX="${BBOX:--179.0,18.0,-66.9,72.0}"
 MAXZOOM="${MAXZOOM:-9}"
 OUTPUT="${OUTPUT:-public/basemap/us.pmtiles}"
 
-if ! command -v pmtiles >/dev/null 2>&1; then
-  echo "pmtiles CLI not found. Install from https://github.com/protomaps/go-pmtiles/releases" >&2
-  exit 1
+# The CLI is a single static binary, so it is fetched into .tools rather than
+# made a prerequisite anyone has to read about first.
+PMTILES="$(command -v pmtiles || true)"
+if [ -z "$PMTILES" ]; then
+  PMTILES="$(pwd)/.tools/pmtiles"
+  if [ ! -x "$PMTILES" ]; then
+    echo "Fetching the pmtiles CLI into .tools"
+    mkdir -p .tools
+    case "$(uname -m)" in
+      arm64|aarch64) ARCH="arm64" ;;
+      *) ARCH="x86_64" ;;
+    esac
+    case "$(uname -s)" in
+      Darwin) OS="Darwin" ;;
+      *) OS="Linux" ;;
+    esac
+    TAG="$(curl -fsSL https://api.github.com/repos/protomaps/go-pmtiles/releases/latest \
+      | grep -oE '"tag_name": "[^"]+"' | head -1 | cut -d'"' -f4)"
+    VERSION="${TAG#v}"
+    curl -fsSL -o .tools/pmtiles.zip \
+      "https://github.com/protomaps/go-pmtiles/releases/download/${TAG}/go-pmtiles-${VERSION}_${OS}_${ARCH}.zip"
+    unzip -o -q .tools/pmtiles.zip -d .tools
+    rm -f .tools/pmtiles.zip
+    chmod +x "$PMTILES"
+  fi
 fi
 
 mkdir -p "$(dirname "$OUTPUT")"
 echo "Extracting ${BBOX} z0-${MAXZOOM} from ${PLANET}"
-pmtiles extract "$PLANET" "$OUTPUT" \
+"$PMTILES" extract "$PLANET" "$OUTPUT" \
   --bbox="$BBOX" \
   --maxzoom="$MAXZOOM" \
   --download-threads=8 \
   "$@"
 
-pmtiles show "$OUTPUT" | head -8
+# A dry run prices the extract without writing anything to show.
+[ -f "$OUTPUT" ] && "$PMTILES" show "$OUTPUT" | head -8
