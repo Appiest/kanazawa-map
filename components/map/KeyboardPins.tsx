@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { GeoJSONSource, MapGeoJSONFeature, Map as MapLibreMap } from "maplibre-gl";
 import { PIN_SOURCE_ID } from "@/lib/config";
 import type { PinDetail } from "@/lib/pins/repository";
@@ -85,6 +85,7 @@ type Props = {
  */
 export function KeyboardPins({ map, layersReady, onSelect }: Props) {
   const [targets, setTargets] = useState<Target[]>([]);
+  const known = useRef(new Map<number, PinDetail>());
 
   useEffect(() => {
     if (!map || !layersReady) return;
@@ -92,9 +93,21 @@ export function KeyboardPins({ map, layersReady, onSelect }: Props) {
     let current = true;
     const sync = () => {
       const { targets: found, seqs } = readTargets(map);
-      fetchNames(seqs).then(
-        (names) => current && setTargets(withNames(found, names)),
-        () => current && setTargets(found),
+
+      // Panning fires both moveend and idle, and a pan usually reveals nobody
+      // new. Only names we have never seen are worth a request.
+      const missing = seqs.filter((seq) => !known.current.has(seq));
+      if (missing.length === 0) {
+        setTargets(withNames(found, known.current));
+        return;
+      }
+
+      fetchNames(missing).then(
+        (names) => {
+          for (const [seq, pin] of names) known.current.set(seq, pin);
+          if (current) setTargets(withNames(found, known.current));
+        },
+        () => current && setTargets(withNames(found, known.current)),
       );
     };
 

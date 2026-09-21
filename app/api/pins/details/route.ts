@@ -18,6 +18,6 @@ export async function GET(request: Request) {
 
   return Response.json(
     { pins: await findPinDetails(seqs) },
-    { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=86400" } },
+    { headers: { "Cache-Control": "public, max-age=60, s-maxage=60, stale-while-revalidate=86400" } },
   );
 }
