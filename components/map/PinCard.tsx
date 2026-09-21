@@ -1,19 +1,78 @@
 "use client";
 
 import { AnimatePresence } from "motion/react";
-import { LockSimpleIcon, XIcon } from "@phosphor-icons/react";
+import { EnvelopeSimpleIcon, InstagramLogoIcon, LinkSimpleIcon, LockSimpleIcon, XIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/Button";
 import { Panel, TagHole } from "@/components/ui/Panel";
-import type { PinDetail } from "@/lib/pins/repository";
+import type { PinContact, PinDetail } from "@/lib/pins/repository";
 
-type State =
+type DetailState =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "ready"; pin: PinDetail }
   | { status: "error" };
 
-function CardBody({ state }: { state: State }) {
+type ContactState =
+  | { status: "hidden" }
+  | { status: "loading" }
+  | { status: "locked" }
+  | { status: "ready"; contact: PinContact };
+
+const ROW = "flex items-center gap-2 text-sm text-text-body";
+const LINK = "underline decoration-paper-400 underline-offset-2 hover:decoration-paper-700";
+
+function ContactRows({ contact, name }: { contact: PinContact; name: string }) {
+  const handle = contact.instagram?.replace(/^@/, "");
+  return (
+    <div className="mt-3 space-y-1.5 border-t border-separator pt-3">
+      {contact.email ? (
+        <p className={ROW}>
+          <EnvelopeSimpleIcon size={16} aria-hidden className="shrink-0 text-text-secondary" />
+          <a href={`mailto:${contact.email}`} className={LINK}>
+            {contact.email}
+          </a>
+        </p>
+      ) : null}
+      {handle ? (
+        <p className={ROW}>
+          <InstagramLogoIcon size={16} aria-hidden className="shrink-0 text-text-secondary" />
+          <a href={`https://instagram.com/${handle}`} target="_blank" rel="noreferrer" className={LINK}>
+            {`@${handle}`}
+          </a>
+        </p>
+      ) : null}
+      {contact.website ? (
+        <p className={ROW}>
+          <LinkSimpleIcon size={16} aria-hidden className="shrink-0 text-text-secondary" />
+          <a href={contact.website} target="_blank" rel="noreferrer" className={LINK}>
+            {contact.website.replace(/^https?:\/\//, "")}
+          </a>
+        </p>
+      ) : null}
+      {!contact.email && !handle && !contact.website ? (
+        <p className="text-sm text-text-secondary">{name} has not added a way to get in touch yet.</p>
+      ) : null}
+    </div>
+  );
+}
+
+function Contact({ state, name }: { state: ContactState; name: string }) {
+  if (state.status === "ready") return <ContactRows contact={state.contact} name={name} />;
+
   if (state.status === "loading") {
+    return <div className="mt-3 h-4 w-40 rounded bg-bg-sunken" aria-hidden />;
+  }
+
+  return (
+    <p className="mt-3 flex items-start gap-2 text-sm text-text-secondary">
+      <LockSimpleIcon size={16} aria-hidden className="mt-0.5 shrink-0" />
+      Add your own pin to see how to reach {name}
+    </p>
+  );
+}
+
+function CardBody({ detail, contact }: { detail: DetailState; contact: ContactState }) {
+  if (detail.status === "loading") {
     return (
       <div className="space-y-2" aria-hidden>
         <div className="h-7 w-32 rounded bg-bg-sunken" />
@@ -22,37 +81,39 @@ function CardBody({ state }: { state: State }) {
     );
   }
 
-  if (state.status === "error") {
-    return (
-      <p className="text-sm text-text-secondary">
-        That pin would not load. Check your connection and try again.
-      </p>
-    );
+  if (detail.status === "error") {
+    return <p className="text-sm text-text-secondary">That pin would not load. Check your connection and try again.</p>;
   }
 
-  if (state.status !== "ready") return null;
+  if (detail.status !== "ready") return null;
+  const { pin } = detail;
 
   return (
     <>
-      <h2 className="text-2xl font-semibold text-text-primary">{state.pin.displayName}</h2>
-      <p className="text-sm text-text-secondary">{state.pin.neighborhood}</p>
-      {state.pin.note ? (
+      <h2 className="text-2xl font-semibold text-text-primary">{pin.displayName}</h2>
+      <p className="text-sm text-text-secondary">{pin.neighborhood}</p>
+      {pin.note ? (
         <p className="mt-3 border-t border-separator pt-3 text-[0.9375rem] leading-relaxed text-text-body">
-          {state.pin.note}
+          {pin.note}
         </p>
       ) : null}
-      <p className="mt-3 flex items-start gap-2 text-sm text-text-secondary">
-        <LockSimpleIcon size={16} weight="regular" aria-hidden className="mt-0.5 shrink-0" />
-        Add your own pin to see how to reach {state.pin.displayName}
-      </p>
+      <Contact state={contact} name={pin.displayName} />
     </>
   );
 }
 
-export function PinCard({ state, onClose }: { state: State; onClose: () => void }) {
+export function PinCard({
+  detail,
+  contact,
+  onClose,
+}: {
+  detail: DetailState;
+  contact: ContactState;
+  onClose: () => void;
+}) {
   return (
     <AnimatePresence initial={false}>
-      {state.status !== "idle" ? (
+      {detail.status !== "idle" ? (
         <Panel key="pin-card" label="Person on the map">
           <div className="mb-3 flex items-start justify-between">
             <TagHole />
@@ -60,7 +121,7 @@ export function PinCard({ state, onClose }: { state: State; onClose: () => void 
               <XIcon size={18} weight="regular" aria-hidden />
             </Button>
           </div>
-          <CardBody state={state} />
+          <CardBody detail={detail} contact={contact} />
         </Panel>
       ) : null}
     </AnimatePresence>

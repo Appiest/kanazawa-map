@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { AnchorPlace } from "@/lib/pins/repository";
+import { useContact } from "@/lib/pins/useContact";
+import { useEnsureContact } from "@/lib/pins/useEnsureContact";
 import { usePinDetail } from "@/lib/pins/usePinDetail";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 import { AddPinFlow } from "@/components/add/AddPinFlow";
@@ -18,6 +20,8 @@ export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
   const { layersReady, refresh } = usePinSource(map, anchors);
   const [selected, setSelected] = useState<number | null>(null);
   const { state, prefetch } = usePinDetail(selected);
+  const contact = useContact(selected);
+  useEnsureContact();
 
   const dismiss = useCallback(() => setSelected(null), []);
 
@@ -39,7 +43,7 @@ export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
   return (
     <div className="absolute inset-0 bg-bg-page">
       <div ref={container} className="h-full w-full" />
-      <PinCard state={state} onClose={dismiss} />
+      <PinCard detail={state} contact={contact} onClose={dismiss} />
       <AddPinFlow map={map} onPlanted={refresh} onOpen={dismiss} />
     </div>
   );
