@@ -21,12 +21,18 @@ function pickPlaceName(address: NominatimAddress): string | null {
 
 export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;
-  const lat = Number(params.get("lat"));
-  const lng = Number(params.get("lng"));
+  const rawLat = Number(params.get("lat"));
+  const rawLng = Number(params.get("lng"));
 
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+  if (!Number.isFinite(rawLat) || !Number.isFinite(rawLng)) {
     return Response.json({ error: "Pass lat and lng" }, { status: 400 });
   }
+
+  // Rounded to about 110 metres, which is far finer than a neighbourhood and
+  // collapses nearby requests onto one cache entry. Nominatim asks for at most
+  // one call a second, and this keeps a busy map from spending that budget.
+  const lat = Math.round(rawLat * 1000) / 1000;
+  const lng = Math.round(rawLng * 1000) / 1000;
 
   const query = new URLSearchParams({
     format: "jsonv2",

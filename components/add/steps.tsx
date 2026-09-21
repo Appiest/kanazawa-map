@@ -60,10 +60,13 @@ export function DescribeStep({
   saving: boolean;
   error: string | null;
 }) {
-  const ready = displayName.trim().length > 0 && neighborhood.trim().length > 0;
-
   return (
-    <>
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit();
+      }}
+    >
       <h2 className="text-xl font-semibold text-text-primary">Tell people who they are meeting</h2>
       <div className="mt-4 space-y-3">
         <Field
@@ -72,13 +75,16 @@ export function DescribeStep({
           onChange={(value) => onChange({ displayName: value })}
           placeholder="Mika"
           autoFocus
+          required
           maxLength={40}
+          autoComplete="given-name"
         />
         <Field
           label="Neighborhood"
           value={neighborhood}
           onChange={(value) => onChange({ neighborhood: value })}
           placeholder="Sawtelle"
+          required
           maxLength={60}
         />
         <Field
@@ -97,14 +103,16 @@ export function DescribeStep({
         </p>
       ) : null}
       <div className="mt-4 flex items-center gap-2">
-        <Button onClick={onSubmit} disabled={!ready || saving}>
+        {/* Kept enabled so the browser can point at the empty field and say
+            why, rather than leaving a dead button with no explanation. */}
+        <Button type="submit" disabled={saving}>
           {saving ? "Saving" : submitLabel}
         </Button>
         <Button variant="quiet" onClick={onBack}>
           Move my tag
         </Button>
       </div>
-    </>
+    </form>
   );
 }
 
@@ -124,7 +132,12 @@ export function SignInStep({
   error: string | null;
 }) {
   return (
-    <>
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSend();
+      }}
+    >
       <h2 className="text-xl font-semibold text-text-primary">Confirm it is you</h2>
       <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-text-body">
         We send a link that signs you in. It also lets you edit or remove your pin later.
@@ -137,6 +150,10 @@ export function SignInStep({
           placeholder="name@example.com"
           hint="Kept private. Only people who are on the map can ask to reach you."
           autoFocus
+          required
+          type="email"
+          inputMode="email"
+          autoComplete="email"
         />
       </div>
       {error ? (
@@ -145,7 +162,7 @@ export function SignInStep({
         </p>
       ) : null}
       <div className="mt-4 flex items-center gap-2">
-        <Button onClick={onSend} disabled={!email.includes("@") || sending}>
+        <Button type="submit" disabled={sending}>
           <EnvelopeSimpleIcon size={16} weight="regular" aria-hidden />
           {sending ? "Sending" : "Send my link"}
         </Button>
@@ -153,7 +170,7 @@ export function SignInStep({
           Back
         </Button>
       </div>
-    </>
+    </form>
   );
 }
 

@@ -8,32 +8,11 @@ type Props = {
   ready: boolean;
 };
 
-/** One line under the title, for whichever of these is true right now. */
-function Status({ count, error, ready }: Props) {
-  if (error) {
-    return (
-      <p role="status" className="mt-2 text-sm leading-snug text-clay-700">
-        The pins would not load. Check your connection and refresh.
-      </p>
-    );
-  }
-
-  if (!ready) {
-    return (
-      <p role="status" className="mt-2 text-sm leading-snug text-text-secondary">
-        Loading the map
-      </p>
-    );
-  }
-
-  if (count === 0) {
-    return (
-      <p role="status" className="mt-2 text-sm leading-snug text-person-text">
-        Nobody has added themselves yet. You can be first.
-      </p>
-    );
-  }
-
+/** Whichever of these is true right now, or nothing. */
+function statusMessage({ count, error, ready }: Props): { text: string; tone: string } | null {
+  if (error) return { text: "The pins would not load. Check your connection and refresh.", tone: "text-clay-700" };
+  if (!ready) return { text: "Loading the map", tone: "text-text-secondary" };
+  if (count === 0) return { text: "Nobody has added themselves yet. You can be first.", tone: "text-person-text" };
   return null;
 }
 
@@ -43,13 +22,19 @@ function Status({ count, error, ready }: Props) {
  * stays to a name, one sentence, and whatever the map is doing.
  */
 export function MapHeader(props: Props) {
+  const status = statusMessage(props);
+
   return (
-    <header className="pointer-events-none absolute top-4 left-4 z-10 max-w-[19rem] sm:top-6 sm:left-6">
+    <header className="pointer-events-none absolute top-4 left-4 z-10 max-w-[min(19rem,calc(100vw-7rem))] sm:top-6 sm:left-6">
       <h1 className="text-lg font-semibold text-text-primary">{APP_NAME}</h1>
       <p className="mt-0.5 text-sm leading-snug text-text-secondary">
         Find Asian Americans near you, and let them find you.
       </p>
-      <Status {...props} />
+      {/* The region stays in the document so a later message is announced.
+          Swapping the element in and out can leave a screen reader silent. */}
+      <p role="status" className={`mt-2 text-sm leading-snug ${status ? status.tone : ""}`}>
+        {status?.text ?? ""}
+      </p>
     </header>
   );
 }

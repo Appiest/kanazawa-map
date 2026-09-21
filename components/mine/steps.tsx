@@ -5,17 +5,21 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import type { OwnPin } from "@/lib/pins/repository";
 
+const QUIET_LINK = "text-text-secondary underline decoration-paper-400 underline-offset-2";
+
 export function SummaryStep({
   pin,
   onEdit,
   onMove,
   onRemove,
+  onSignOut,
   onClose,
 }: {
   pin: OwnPin;
   onEdit: () => void;
   onMove: () => void;
   onRemove: () => void;
+  onSignOut: () => void;
   onClose: () => void;
 }) {
   return (
@@ -36,13 +40,14 @@ export function SummaryStep({
           Close
         </Button>
       </div>
-      <button
-        type="button"
-        onClick={onRemove}
-        className="mt-3 text-sm text-text-secondary underline decoration-paper-400 underline-offset-2 hover:text-clay-700"
-      >
-        Take myself off the map
-      </button>
+      <div className="mt-3 flex items-center gap-4 text-sm">
+        <button type="button" onClick={onRemove} className={QUIET_LINK + " hover:text-clay-700"}>
+          Take myself off the map
+        </button>
+        <button type="button" onClick={onSignOut} className={QUIET_LINK + " hover:text-text-primary"}>
+          Sign out
+        </button>
+      </div>
     </>
   );
 }
@@ -70,17 +75,27 @@ export function EditStep({
   saving: boolean;
   error: string | null;
 }) {
-  const ready = values.displayName.trim().length > 0 && values.neighborhood.trim().length > 0;
-
   return (
-    <>
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSave();
+      }}
+    >
       <h2 className="text-xl font-semibold text-text-primary">Edit your details</h2>
       <div className="mt-4 max-h-[50vh] space-y-3 overflow-y-auto pr-1">
-        <Field label="Name" value={values.displayName} onChange={(v) => onChange({ displayName: v })} maxLength={40} />
+        <Field
+          label="Name"
+          value={values.displayName}
+          onChange={(v) => onChange({ displayName: v })}
+          required
+          maxLength={40}
+        />
         <Field
           label="Neighborhood"
           value={values.neighborhood}
           onChange={(v) => onChange({ neighborhood: v })}
+          required
           maxLength={60}
         />
         <Field
@@ -102,7 +117,9 @@ export function EditStep({
           label="Website"
           value={values.website}
           onChange={(v) => onChange({ website: v })}
-          placeholder="https://example.com"
+          placeholder="example.com"
+          type="url"
+          inputMode="url"
           maxLength={200}
         />
       </div>
@@ -112,14 +129,14 @@ export function EditStep({
         </p>
       ) : null}
       <div className="mt-4 flex items-center gap-2">
-        <Button onClick={onSave} disabled={!ready || saving}>
+        <Button type="submit" disabled={saving}>
           {saving ? "Saving" : "Save changes"}
         </Button>
         <Button variant="quiet" onClick={onCancel}>
           Cancel
         </Button>
       </div>
-    </>
+    </form>
   );
 }
 

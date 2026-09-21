@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { motion } from "motion/react";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { Panel } from "@/components/ui/Panel";
 import { PlacementGhost } from "@/components/add/PlacementGhost";
 import type { OwnPin } from "@/lib/pins/repository";
 import type { useMyPin } from "@/lib/pins/useMyPin";
+import { cameraDuration } from "@/lib/motion";
+import { signOut } from "@/lib/supabase/browser";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 import { EditStep, MoveStep, RemoveStep, SummaryStep, type EditValues } from "./steps";
 
@@ -45,6 +47,12 @@ export function MyPin({ pin, map, controls, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   useEscapeKey(true, onClose);
+
+  // Opening "Your pin" should show you where it is, not just describe it.
+  useEffect(() => {
+    if (!map) return;
+    map.easeTo({ center: [pin.lng, pin.lat], zoom: Math.max(map.getZoom(), 12), duration: cameraDuration(700) });
+  }, [map, pin.lng, pin.lat]);
 
   const run = useCallback(async (job: () => Promise<void>, after: () => void) => {
     setBusy(true);
@@ -89,12 +97,18 @@ export function MyPin({ pin, map, controls, onClose }: Props) {
 
   const confirmRemove = () => run(() => controls.remove(), onClose);
 
+  const leave = () =>
+    run(async () => {
+      await signOut();
+      controls.reload();
+    }, onClose);
+
   return (
     <>
       {screen === "moving" ? <PlacementGhost /> : null}
       <Panel label={LABELS[screen]} focusKey={screen}>
         <motion.div key={screen} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.12 }}>
-          {screenViews({ pin, values, setValues, setScreen, busy, error, onClose, saveEdits, saveMove, confirmRemove })[screen]}
+          {screenViews({ pin, values, setValues, setScreen, busy, error, onClose, onSignOut: leave, saveEdits, saveMove, confirmRemove })[screen]}
         </motion.div>
       </Panel>
     </>
@@ -109,6 +123,7 @@ type ViewArgs = {
   busy: boolean;
   error: string | null;
   onClose: () => void;
+  onSignOut: () => void;
   saveEdits: () => void;
   saveMove: () => void;
   confirmRemove: () => void;
@@ -124,6 +139,7 @@ function screenViews(args: ViewArgs): Record<Screen, ReactNode> {
         onEdit={() => setScreen("editing")}
         onMove={() => setScreen("moving")}
         onRemove={() => setScreen("removing")}
+        onSignOut={args.onSignOut}
         onClose={onClose}
       />
     ),

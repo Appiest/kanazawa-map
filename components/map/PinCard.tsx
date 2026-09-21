@@ -4,6 +4,7 @@ import { AnimatePresence } from "motion/react";
 import { EnvelopeSimpleIcon, InstagramLogoIcon, LinkSimpleIcon, LockSimpleIcon, XIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/Button";
 import { Panel, TagHole } from "@/components/ui/Panel";
+import { APP_NAME, MODERATION_EMAIL } from "@/lib/config";
 import type { PinContact, PinDetail } from "@/lib/pins/repository";
 import { safeUrl } from "@/lib/safeUrl";
 
@@ -73,6 +74,27 @@ function Contact({ state, name }: { state: ContactState; name: string }) {
   );
 }
 
+/** Only shown where the organisation has given an address to send reports to. */
+function ReportLink({ pin }: { pin: PinDetail }) {
+  if (!MODERATION_EMAIL) return null;
+
+  const subject = encodeURIComponent(`${APP_NAME}: reporting pin ${pin.seq}`);
+  const body = encodeURIComponent(
+    `I am reporting the pin for ${pin.displayName} in ${pin.neighborhood} (pin ${pin.seq}).\n\nWhat is wrong:\n`,
+  );
+
+  return (
+    <p className="mt-3 border-t border-separator pt-3">
+      <a
+        href={`mailto:${MODERATION_EMAIL}?subject=${subject}&body=${body}`}
+        className="text-sm text-text-secondary underline decoration-paper-400 underline-offset-2 hover:text-clay-700"
+      >
+        Report this pin
+      </a>
+    </p>
+  );
+}
+
 function CardBody({ detail, contact }: { detail: DetailState; contact: ContactState }) {
   if (detail.status === "loading") {
     return (
@@ -100,6 +122,7 @@ function CardBody({ detail, contact }: { detail: DetailState; contact: ContactSt
         </p>
       ) : null}
       <Contact state={contact} name={pin.displayName} />
+      <ReportLink pin={pin} />
     </>
   );
 }

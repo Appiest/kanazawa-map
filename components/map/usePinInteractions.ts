@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import type { GeoJSONSource, MapLayerMouseEvent, Map as MapLibreMap } from "maplibre-gl";
 import { PIN_SOURCE_ID } from "@/lib/config";
+import { cameraDuration } from "@/lib/motion";
 import { CLUSTER_LAYER_ID, PIN_LAYER_ID } from "./pin-layers";
 
 const HOVERABLE_LAYERS = [PIN_LAYER_ID, CLUSTER_LAYER_ID, "anchors-label"];
@@ -25,7 +26,7 @@ async function expandCluster(map: MapLibreMap, event: MapLayerMouseEvent) {
   map.easeTo({
     center: feature.geometry.coordinates as [number, number],
     zoom,
-    duration: 420,
+    duration: cameraDuration(420),
   });
 }
 

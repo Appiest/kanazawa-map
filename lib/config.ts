@@ -23,6 +23,12 @@ export const MAX_BOUNDS: [[number, number], [number, number]] = [
   [-64, 73],
 ];
 
+/**
+ * Where a report about someone's pin goes. Left unset, the card shows no
+ * report link at all rather than one that goes nowhere.
+ */
+export const MODERATION_EMAIL = process.env.NEXT_PUBLIC_MODERATION_EMAIL ?? null;
+
 /** Working title. Every visible mention of the product reads from here. */
 export const APP_NAME = "Kanazawa";
 

@@ -21,9 +21,9 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode;
 };
 
-export function Button({ variant = "primary", className = "", children, ...rest }: Props) {
+export function Button({ variant = "primary", className = "", children, type = "button", ...rest }: Props) {
   return (
-    <button type="button" className={`${BASE} ${VARIANTS[variant]} ${className}`} {...rest}>
+    <button type={type} className={`${BASE} ${VARIANTS[variant]} ${className}`} {...rest}>
       {children}
     </button>
   );

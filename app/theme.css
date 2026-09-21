@@ -71,9 +71,19 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Two tones, because this ring lands on dark buttons and on green pins as well
+   as on paper. The inner halo fills the offset so the coloured ring always sits
+   against paper, whatever is actually behind the control. */
 :focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--color-paper-50);
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight;
+  }
 }
 
 /* On a touch screen every control in a panel clears a fingertip. The invisible

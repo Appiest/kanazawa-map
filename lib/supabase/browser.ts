@@ -27,6 +27,11 @@ export async function sendSignInLink(email: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+/** Leaving a shared computer without leaving your pin editable. */
+export async function signOut(): Promise<void> {
+  await browserClient()?.auth.signOut();
+}
+
 export async function currentAccessToken(): Promise<string | null> {
   const supabase = browserClient();
   if (!supabase) return null;

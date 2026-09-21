@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { GeoJSONSource, MapGeoJSONFeature, Map as MapLibreMap } from "maplibre-gl";
 import { PIN_SOURCE_ID } from "@/lib/config";
 import type { PinDetail } from "@/lib/pins/repository";
+import { cameraDuration } from "@/lib/motion";
 import { CLUSTER_LAYER_ID, PIN_LAYER_ID } from "./pin-layers";
 
 const MAX_TARGETS = 80;
@@ -115,7 +116,7 @@ export function KeyboardPins({ map, layersReady, onSelect }: Props) {
     void map
       .getSource<GeoJSONSource>(PIN_SOURCE_ID)
       ?.getClusterExpansionZoom(target.clusterId)
-      .then((zoom) => map.easeTo({ center: map.unproject([target.x, target.y]), zoom, duration: 420 }));
+      .then((zoom) => map.easeTo({ center: map.unproject([target.x, target.y]), zoom, duration: cameraDuration(420) }));
   };
 
   if (targets.length === 0) return null;

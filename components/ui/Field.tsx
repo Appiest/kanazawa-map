@@ -11,6 +11,10 @@ type Props = {
   maxLength?: number;
   multiline?: boolean;
   autoFocus?: boolean;
+  required?: boolean;
+  type?: "text" | "email" | "url";
+  inputMode?: "text" | "email" | "url";
+  autoComplete?: string;
 };
 
 /**
@@ -31,6 +35,10 @@ export function Field({
   maxLength,
   multiline = false,
   autoFocus = false,
+  required = false,
+  type = "text",
+  inputMode,
+  autoComplete,
 }: Props) {
   const id = useId();
   const hintId = hint ? `${id}-hint` : undefined;
@@ -40,6 +48,7 @@ export function Field({
     placeholder,
     maxLength,
     autoFocus,
+    required,
     "aria-describedby": hintId,
     onChange: (event: { target: { value: string } }) => onChange(event.target.value),
   };
@@ -52,7 +61,7 @@ export function Field({
       {multiline ? (
         <textarea {...shared} rows={3} className={`${CONTROL} resize-none`} />
       ) : (
-        <input {...shared} type="text" className={CONTROL} />
+        <input {...shared} type={type} inputMode={inputMode} autoComplete={autoComplete} className={CONTROL} />
       )}
       {hint ? (
         <p id={hintId} className="text-sm text-text-secondary">

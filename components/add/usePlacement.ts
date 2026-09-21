@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import type { Map as MapLibreMap } from "maplibre-gl";
+import { cameraDuration } from "@/lib/motion";
 
 export type Position = { lng: number; lat: number };
 
@@ -40,7 +41,7 @@ export function usePlacement(map: MapLibreMap | null) {
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         setLocating(false);
-        map.easeTo({ center: [coords.longitude, coords.latitude], zoom: 14, duration: 900 });
+        map.easeTo({ center: [coords.longitude, coords.latitude], zoom: 14, duration: cameraDuration(900) });
       },
       () => {
         setLocating(false);
