@@ -22,7 +22,17 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-const TILE_ORIGIN = process.env.NEXT_PUBLIC_TILE_ORIGIN;
+/** Only a basemap on another host is worth a preconnect; a local file is not. */
+function remoteOrigin(url: string | undefined): string | null {
+  if (!url?.startsWith("http")) return null;
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+}
+
+const TILE_ORIGIN = remoteOrigin(process.env.NEXT_PUBLIC_TILE_URL);
 const SUPABASE_ORIGIN = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
