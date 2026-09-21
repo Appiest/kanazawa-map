@@ -1,10 +1,11 @@
 import type { FilterSpecification, LayerSpecification } from "maplibre-gl";
-import { ANCHOR_SOURCE_ID, PIN_SOURCE_ID } from "@/lib/config";
+import { ANCHOR_SOURCE_ID, GATHERING_SOURCE_ID, PIN_SOURCE_ID } from "@/lib/config";
 import { hexOf } from "@/styles/palette";
 
 export const PIN_LAYER_ID = "pins-single";
 export const CLUSTER_LAYER_ID = "pins-cluster";
 export const ANCHOR_LAYER_ID = "anchors-label";
+export const GATHERING_LAYER_ID = "gatherings";
 export const SELECTED_LAYER_ID = "pins-selected";
 
 /** A filter that matches no feature, used when nothing is open. */
@@ -36,6 +37,30 @@ export const anchorLayer: LayerSpecification = {
   paint: {
     "text-color": hexOf("paper", 650),
     "text-halo-color": hexOf("paper", 100),
+    "text-halo-width": 1.5,
+  },
+};
+
+/** Sits above the pins: something happening outranks somebody being there. */
+export const gatheringLayer: LayerSpecification = {
+  id: GATHERING_LAYER_ID,
+  type: "symbol",
+  source: GATHERING_SOURCE_ID,
+  layout: {
+    "icon-image": "gathering",
+    "icon-anchor": "bottom",
+    "icon-allow-overlap": true,
+    "text-field": ["get", "title"],
+    "text-font": LABEL_FONT,
+    "text-size": 12,
+    "text-offset": [0, 0.4],
+    "text-anchor": "top",
+    "text-optional": true,
+    "text-max-width": 9,
+  },
+  paint: {
+    "text-color": hexOf("clay", 700),
+    "text-halo-color": hexOf("land", 100),
     "text-halo-width": 1.5,
   },
 };

@@ -28,4 +28,5 @@ export const APP_NAME = "Kanazawa";
 
 export const PIN_SOURCE_ID = "pins";
 export const ANCHOR_SOURCE_ID = "anchors";
+export const GATHERING_SOURCE_ID = "gatherings";
 export const BASEMAP_SOURCE_ID = "protomaps";

@@ -12,7 +12,7 @@ const STAKE_WIDTH = 1.5;
 const TOTAL_WIDTH = 20;
 const TOTAL_HEIGHT = 26;
 
-export type PinVariant = "person" | "person-selected" | "anchor";
+export type PinVariant = "person" | "person-selected" | "anchor" | "gathering";
 
 type PinPaint = { tag: string; stake: string; notch: string };
 
@@ -20,6 +20,9 @@ const PAINT: Record<PinVariant, PinPaint> = {
   person: { tag: hexOf("green", 600), stake: hexOf("green", 700), notch: hexOf("green", 100) },
   "person-selected": { tag: hexOf("paper", 900), stake: hexOf("paper", 900), notch: hexOf("paper", 100) },
   anchor: { tag: hexOf("paper", 200), stake: hexOf("paper", 500), notch: hexOf("paper", 500) },
+  // A gathering is a moment rather than a person, so it takes the warm accent
+  // as a small mark and never the green that means somebody lives here.
+  gathering: { tag: hexOf("clay", 500), stake: hexOf("clay", 700), notch: hexOf("paper", 50) },
 };
 
 function tagPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {

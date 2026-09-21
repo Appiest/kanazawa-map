@@ -7,7 +7,10 @@ import { useContact } from "@/lib/pins/useContact";
 import { useEnsureContact } from "@/lib/pins/useEnsureContact";
 import { usePinDetail } from "@/lib/pins/usePinDetail";
 import { useEscapeKey } from "@/lib/useEscapeKey";
+import { GatheringFlow } from "@/components/gatherings/GatheringFlow";
+import { useGatheringSource } from "@/components/gatherings/useGatheringSource";
 import { PinControls } from "@/components/mine/PinControls";
+import { useGatherings } from "@/lib/gatherings/useGatherings";
 import { KeyboardPins } from "./KeyboardPins";
 import { MapHeader } from "./MapHeader";
 import { PinCard } from "./PinCard";
@@ -28,6 +31,8 @@ export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
   useEnsureContact();
   useOrientToViewer(map, layersReady);
   const visible = useVisiblePins(map, layersReady);
+  const { gatherings, post } = useGatherings();
+  useGatheringSource(map, gatherings);
 
   const dismiss = useCallback(() => setSelected(null), []);
 
@@ -53,6 +58,7 @@ export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
       <KeyboardPins map={map} layersReady={layersReady} onSelect={setSelected} />
       <PinCard detail={state} contact={contact} onClose={dismiss} />
       <PinControls map={map} onChanged={refresh} onOpen={dismiss} />
+      <GatheringFlow map={map} onPost={post} onOpen={dismiss} />
     </div>
   );
 }

@@ -22,7 +22,7 @@ function configureMapLibreOnce() {
   mapLibreConfigured = true;
 }
 
-const PIN_VARIANTS: PinVariant[] = ["person", "person-selected", "anchor"];
+const PIN_VARIANTS: PinVariant[] = ["person", "person-selected", "anchor", "gathering"];
 
 function addPinImages(map: MapLibreMap) {
   const pixelRatio = Math.min(window.devicePixelRatio || 1, 3);
