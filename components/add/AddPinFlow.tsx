@@ -69,7 +69,7 @@ export function AddPinFlow({ map, onPlanted, onOpen }: Props) {
 
   if (flow.step === "closed") {
     return (
-      <div className="pointer-events-auto absolute right-4 bottom-4 z-10 sm:right-6 sm:bottom-6">
+      <div className="pointer-events-auto absolute right-4 bottom-4 z-10 sm:right-6 sm:bottom-6" data-touch-target>
         <Button
           onClick={() => {
             onOpen();

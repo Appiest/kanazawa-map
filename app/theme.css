@@ -76,6 +76,16 @@ body {
   outline-offset: 2px;
 }
 
+/* On a touch screen every control in a panel clears a fingertip. The invisible
+   keyboard targets over the pins are excluded: they are sized to the tag they
+   sit on, and growing them would make neighbouring pins overlap. */
+@media (pointer: coarse) {
+  [role="dialog"] button,
+  [data-touch-target] button {
+    min-height: 44px;
+  }
+}
+
 /* Figures that align in a column. Prose does not get this. */
 .tabular {
   font-variant-numeric: tabular-nums;

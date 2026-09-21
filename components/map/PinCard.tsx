@@ -5,6 +5,7 @@ import { EnvelopeSimpleIcon, InstagramLogoIcon, LinkSimpleIcon, LockSimpleIcon, 
 import { Button } from "@/components/ui/Button";
 import { Panel, TagHole } from "@/components/ui/Panel";
 import type { PinContact, PinDetail } from "@/lib/pins/repository";
+import { safeUrl } from "@/lib/safeUrl";
 
 type DetailState =
   | { status: "idle" }
@@ -23,6 +24,7 @@ const LINK = "underline decoration-paper-400 underline-offset-2 hover:decoration
 
 function ContactRows({ contact, name }: { contact: PinContact; name: string }) {
   const handle = contact.instagram?.replace(/^@/, "");
+  const website = safeUrl(contact.website);
   return (
     <div className="mt-3 space-y-1.5 border-t border-separator pt-3">
       {contact.email ? (
@@ -41,15 +43,15 @@ function ContactRows({ contact, name }: { contact: PinContact; name: string }) {
           </a>
         </p>
       ) : null}
-      {contact.website ? (
+      {website ? (
         <p className={ROW}>
           <LinkSimpleIcon size={16} aria-hidden className="shrink-0 text-text-secondary" />
-          <a href={contact.website} target="_blank" rel="noreferrer" className={LINK}>
-            {contact.website.replace(/^https?:\/\//, "")}
+          <a href={website} target="_blank" rel="noreferrer" className={LINK}>
+            {website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
           </a>
         </p>
       ) : null}
-      {!contact.email && !handle && !contact.website ? (
+      {!contact.email && !handle && !website ? (
         <p className="text-sm text-text-secondary">{name} has not added a way to get in touch yet.</p>
       ) : null}
     </div>

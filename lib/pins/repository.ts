@@ -38,7 +38,18 @@ const seed = seedPins as StoredPin[];
  */
 const devPins: StoredPin[] = [];
 
+/**
+ * The stand-in people in data/seed-pins.json are invented. Serving them where
+ * anyone could take them for real members would be a lie the nonprofit has to
+ * answer for, so outside development the map is empty until Supabase answers.
+ */
+export const usingSampleData = !isSupabaseConfigured && process.env.NODE_ENV !== "production";
+
 function allLocalPins(): StoredPin[] {
+  if (!usingSampleData) {
+    console.error("Supabase is not configured. The map will stay empty rather than show sample people.");
+    return [];
+  }
   return [...seed, ...devPins];
 }
 
@@ -122,6 +133,7 @@ function nextLocalSeq(): number {
 }
 
 function createLocalPin(input: NewPin): PinDetail {
+  if (!usingSampleData) throw new Error("Pins cannot be saved until Supabase is configured");
   const stored: StoredPin = { ...input, seq: nextLocalSeq() };
   devPins.push(stored);
   return toDetail(stored);

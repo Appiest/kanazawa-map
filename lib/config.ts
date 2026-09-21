@@ -17,9 +17,10 @@ export const INITIAL_BOUNDS: [[number, number], [number, number]] = [
 ];
 
 /** Wide enough never to fight the opening frame, tight enough to stay over data. */
+/** Matches the basemap extract, so the map never pans onto blank paper. */
 export const MAX_BOUNDS: [[number, number], [number, number]] = [
-  [-179, 5],
-  [-40, 72],
+  [-179, 16],
+  [-64, 73],
 ];
 
 /** Working title. Every visible mention of the product reads from here. */

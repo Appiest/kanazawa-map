@@ -37,7 +37,7 @@ export function PinControls({ map, onChanged, onOpen }: Props) {
 
   if (!managing) {
     return (
-      <div className={CORNER}>
+      <div className={CORNER} data-touch-target>
         <Button
           onClick={() => {
             onOpen();

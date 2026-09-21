@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { deleteOwnPin, findOwnPin, updateOwnContact } from "@/lib/pins/repository";
+import { safeUrl } from "@/lib/safeUrl";
 
 function bearerToken(request: Request): string | null {
   const header = request.headers.get("Authorization");
@@ -20,8 +21,14 @@ export async function GET(request: Request) {
 }
 
 const handlesSchema = z.object({
-  instagram: z.string().trim().max(30).nullable(),
-  website: z.string().trim().max(200).nullable(),
+  // Stripped to a bare handle so the card never has to guess at the shape.
+  instagram: z.string().trim().max(30).nullable().transform((v) => v?.replace(/^@/, "") || null),
+  website: z
+    .string()
+    .trim()
+    .max(200)
+    .nullable()
+    .transform(safeUrl),
 });
 
 export async function PATCH(request: Request) {

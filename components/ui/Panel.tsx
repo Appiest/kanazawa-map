@@ -12,7 +12,9 @@ export const PANEL_MOTION = {
 } as const;
 
 const SURFACE =
-  "pointer-events-auto absolute inset-x-4 bottom-4 z-20 rounded-sheet bg-bg-surface p-5 " +
+  // On a phone the panel spans the width, so it sits above the corner control
+  // rather than on top of it, and both stay reachable.
+  "pointer-events-auto absolute inset-x-4 bottom-20 z-20 rounded-sheet bg-bg-surface p-5 " +
   "shadow-lg outline-none sm:inset-x-auto sm:left-6 sm:bottom-6 sm:w-[22rem]";
 
 type Props = {

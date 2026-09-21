@@ -9,12 +9,16 @@
 # Measured against the 2026-09-18 planet build (128.6 GiB, z0-15):
 #
 #   scope                    archive    R2 storage
-#   LA metro      z0-15        299 MB      $0.004/mo
-#   CONUS         z0-9         156 MB      $0.002/mo   <- development default
-#   CONUS         z0-12        1.9 GB      $0.03/mo
-#   CONUS         z0-13        4.2 GB      $0.06/mo
-#   CONUS         z0-14        8.8 GB      $0.13/mo
-#   CONUS         z0-15         19 GB      $0.29/mo    <- production
+#   LA metro       z0-15       299 MB      $0.004/mo
+#   50 states      z0-9        364 MB      $0.005/mo   <- development default
+#   50 states      z0-10       863 MB      $0.013/mo
+#   CONUS          z0-12       1.9 GB      $0.03/mo
+#   CONUS          z0-13       4.2 GB      $0.06/mo
+#   CONUS          z0-14       8.8 GB      $0.13/mo
+#   CONUS          z0-15        19 GB      $0.29/mo
+#
+# The bbox spans all fifty states. A map for this audience that leaves out
+# Hawaii is missing the state with the largest Asian American share.
 #
 # Vector tiles overzoom cleanly, so a lower maxzoom stays sharp and only loses
 # detail. Run with --dry-run to price a change before downloading anything.
@@ -22,7 +26,7 @@
 set -euo pipefail
 
 PLANET="${PLANET:-https://build.protomaps.com/20260918.pmtiles}"
-BBOX="${BBOX:--125.0,24.4,-66.9,49.4}"
+BBOX="${BBOX:--179.0,18.0,-66.9,72.0}"
 MAXZOOM="${MAXZOOM:-9}"
 OUTPUT="${OUTPUT:-public/basemap/us.pmtiles}"
 
