@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ContactHandles, NewPin, OwnPin } from "./repository";
 import { takeJustPlanted } from "./draft";
-import { authIsAvailable, currentAccessToken } from "@/lib/supabase/browser";
+import { authIsAvailable, currentAccessToken, onAuthSettled } from "@/lib/supabase/browser";
 
 type State =
   | { status: "unknown" }
@@ -50,6 +50,10 @@ export function useMyPin(onChanged: () => void) {
       current = false;
     };
   }, [revision]);
+
+  // Signing in or out changes whose pin this is, and the session can land after
+  // the first read, so the answer is taken again whenever it settles.
+  useEffect(() => onAuthSettled(() => reload()), [reload]);
 
   const saveDetails = useCallback(
     async (pin: NewPin) => {

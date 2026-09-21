@@ -32,6 +32,28 @@ export async function signOut(): Promise<void> {
   await browserClient()?.auth.signOut();
 }
 
+/**
+ * Calls back whenever the signed-in state settles, including the first time.
+ *
+ * Arriving from an email link puts tokens in the URL, and the client reads
+ * them asynchronously, so a single getSession() can run before a session
+ * exists and report nobody signed in. Subscribing catches the session whenever
+ * it lands; supabase fires an initial event too, so an ordinary visit takes
+ * the same path. Returns an unsubscribe.
+ */
+export function onAuthSettled(handler: (token: string | null) => void): () => void {
+  const supabase = browserClient();
+  if (!supabase) {
+    handler(null);
+    return () => {};
+  }
+
+  const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    handler(session?.access_token ?? null);
+  });
+  return () => data.subscription.unsubscribe();
+}
+
 export async function currentAccessToken(): Promise<string | null> {
   const supabase = browserClient();
   if (!supabase) return null;

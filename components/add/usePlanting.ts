@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { clearDraft, markJustPlanted, readDraft, saveDraft } from "@/lib/pins/draft";
 import type { NewPin, PinDetail } from "@/lib/pins/repository";
-import { authIsAvailable, currentAccessToken, sendSignInLink } from "@/lib/supabase/browser";
+import { authIsAvailable, currentAccessToken, onAuthSettled, sendSignInLink } from "@/lib/supabase/browser";
 
 async function postPin(pin: NewPin, token: string | null): Promise<PinDetail> {
   const response = await fetch("/api/pins", {
@@ -35,13 +35,17 @@ export function usePlanting(onPlanted: (pin: PinDetail) => void) {
   );
 
   // Returning from an email link: whatever was written before leaving is saved.
+  // The session arrives after the page does, so this waits for it rather than
+  // asking once and giving up.
   useEffect(() => {
     if (!authIsAvailable) return;
     const draft = readDraft();
     if (!draft) return;
 
-    currentAccessToken().then((token) => {
-      if (!token) return;
+    let planted = false;
+    return onAuthSettled((token) => {
+      if (!token || planted) return;
+      planted = true;
       postPin(draft, token).then((pin) => {
         markJustPlanted();
         finish(pin);
