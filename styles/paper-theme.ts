@@ -1,54 +1,62 @@
 import type { Theme } from "protomaps-themes-base";
 import { hexOf } from "./palette.ts";
 
-const paper = (step: Parameters<typeof hexOf>[1]) => hexOf("paper", step);
-const water = (step: Parameters<typeof hexOf>[1]) => hexOf("water", step);
+type Step = Parameters<typeof hexOf>[1];
+const paper = (step: Step) => hexOf("paper", step);
+const water = (step: Step) => hexOf("water", step);
+const land = (step: Step) => hexOf("land", step);
+const sage = (step: Step) => hexOf("sage", step);
+const sand = (step: Step) => hexOf("sand", step);
 
-const LAND = paper(100);
-const HALO = paper(100);
+const LAND = land(100);
+const HALO = land(100);
 const LABEL = paper(650);
 const LABEL_STRONG = paper(800);
 
-/* Land uses that would normally be tinted stay on the neutral ramp.
-   Green is reserved for people, so the basemap contains none of it. */
-const LANDUSE_QUIET = paper(200);
-const LANDUSE_SOFT = paper(300);
+/* Natural features carry hue rather than saturation: enough for the land to
+   look like land, never enough to compete with a pin. Park sage sits 27
+   degrees off the pin green at a quarter of its chroma, so a park cannot be
+   mistaken for somebody standing in one. */
+const PARK = sage(200);
+const PARK_DEEP = sage(300);
+const BUILT = land(200);
+const BUILT_SOFT = land(300);
 
 export const paperTheme: Theme = {
   background: LAND,
   earth: LAND,
 
-  park_a: LANDUSE_QUIET,
-  park_b: LANDUSE_SOFT,
-  wood_a: LANDUSE_QUIET,
-  wood_b: LANDUSE_SOFT,
-  scrub_a: LANDUSE_QUIET,
-  scrub_b: LANDUSE_SOFT,
-  hospital: LANDUSE_QUIET,
-  industrial: LANDUSE_QUIET,
-  school: LANDUSE_QUIET,
-  pedestrian: LANDUSE_QUIET,
-  zoo: LANDUSE_QUIET,
-  military: LANDUSE_QUIET,
-  aerodrome: LANDUSE_QUIET,
-  glacier: paper(50),
-  sand: paper(200),
-  beach: paper(200),
-  runway: paper(300),
+  park_a: PARK,
+  park_b: PARK_DEEP,
+  wood_a: PARK,
+  wood_b: PARK_DEEP,
+  scrub_a: sage(200),
+  scrub_b: sage(300),
+  hospital: BUILT,
+  industrial: BUILT,
+  school: BUILT,
+  pedestrian: BUILT,
+  zoo: PARK,
+  military: BUILT,
+  aerodrome: BUILT,
+  glacier: land(50),
+  sand: sand(200),
+  beach: sand(200),
+  runway: BUILT_SOFT,
 
   water: water(300),
-  pier: paper(300),
-  buildings: paper(200),
+  pier: BUILT_SOFT,
+  buildings: land(200),
 
   /* Roads are hairlines. Casings match the land so they read as a single
      stroke rather than an outlined ribbon. */
-  other: paper(300),
-  minor_service: paper(300),
-  minor_a: paper(400),
-  minor_b: paper(300),
-  link: paper(400),
-  major: paper(500),
-  highway: paper(500),
+  other: land(300),
+  minor_service: land(300),
+  minor_a: land(400),
+  minor_b: land(300),
+  link: land(400),
+  major: land(500),
+  highway: land(500),
   minor_service_casing: LAND,
   minor_casing: LAND,
   link_casing: LAND,

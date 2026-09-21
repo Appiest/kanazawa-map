@@ -6,10 +6,9 @@ import type { Map as MapLibreMap } from "maplibre-gl";
 import { PlusIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
-import { authIsAvailable } from "@/lib/supabase/browser";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 import { PlacementGhost } from "./PlacementGhost";
-import { DescribeStep, DoneStep, PlacementStep, SentStep, SignInStep } from "./steps";
+import { DescribeStep, DoneStep, PlacementStep } from "./steps";
 import { useAddPin, type AddPinFlowState, type Step } from "./useAddPin";
 
 type OpenStep = Exclude<Step, "closed">;
@@ -17,8 +16,6 @@ type OpenStep = Exclude<Step, "closed">;
 const LABELS: Record<OpenStep, string> = {
   placing: "Choose where your tag goes",
   describing: "Describe yourself",
-  signingIn: "Confirm your email",
-  sent: "Check your email",
   done: "You are on the map",
 };
 
@@ -41,22 +38,11 @@ function stepViews(flow: AddPinFlowState): Record<OpenStep, ReactNode> {
         onChange={flow.patchDetails}
         onBack={flow.back}
         onSubmit={flow.submit}
-        submitLabel={authIsAvailable ? "Continue" : "Add me to the map"}
+        submitLabel="Add me to the map"
         saving={flow.busy}
         error={flow.error}
       />
     ),
-    signingIn: (
-      <SignInStep
-        email={flow.email}
-        onChange={flow.setEmail}
-        onSend={flow.sendLink}
-        onBack={flow.backToDetails}
-        sending={flow.busy}
-        error={flow.error}
-      />
-    ),
-    sent: <SentStep email={flow.email} onClose={flow.close} />,
     done: <DoneStep name={flow.details.displayName} onClose={flow.close} />,
   };
 }

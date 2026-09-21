@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircleIcon, TrashSimpleIcon } from "@phosphor-icons/react";
+import { TrashSimpleIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import type { OwnPin } from "@/lib/pins/repository";
@@ -13,7 +13,6 @@ export function SummaryStep({
   onMove,
   onRemove,
   onSignOut,
-  justPlanted,
   onClose,
 }: {
   pin: OwnPin;
@@ -21,17 +20,10 @@ export function SummaryStep({
   onMove: () => void;
   onRemove: () => void;
   onSignOut: () => void;
-  justPlanted?: boolean;
   onClose: () => void;
 }) {
   return (
     <>
-      {justPlanted ? (
-        <p className="mb-2 flex items-center gap-2 text-sm font-medium text-person-text">
-          <CheckCircleIcon size={16} weight="fill" aria-hidden />
-          You are on the map
-        </p>
-      ) : null}
       <h2 className="text-2xl font-semibold text-text-primary">{pin.displayName}</h2>
       <p className="text-sm text-text-secondary">{pin.neighborhood}</p>
       {pin.note ? (

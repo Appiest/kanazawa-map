@@ -78,11 +78,22 @@ export type Step = keyof typeof LIGHTNESS;
 
 type RampSpec = { hue: number; maxChroma: number; steps: readonly Step[] };
 
+/**
+ * Two families. `paper` and `green` are the interface: a neutral ramp and the
+ * one colour that means a person. The rest are the map, and they carry hue
+ * rather than saturation so the land can look like land without competing with
+ * the pins. Park sage sits 27 degrees off the pin green and at a quarter of its
+ * chroma, so a park never reads as somebody standing in one.
+ */
 const RAMPS = {
   paper: { hue: 87.6, maxChroma: 0.016, steps: [50, 100, 200, 300, 400, 500, 600, 650, 700, 800, 900, 950] },
   green: { hue: 152, maxChroma: 0.145, steps: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900] },
-  water: { hue: 232, maxChroma: 0.055, steps: [100, 200, 300, 400, 700] },
   clay: { hue: 35, maxChroma: 0.145, steps: [500, 700] },
+
+  land: { hue: 82, maxChroma: 0.059, steps: [50, 100, 200, 300, 400, 500] },
+  water: { hue: 232, maxChroma: 0.1, steps: [100, 200, 300, 400, 500, 700] },
+  sage: { hue: 125, maxChroma: 0.069, steps: [200, 300, 400] },
+  sand: { hue: 75, maxChroma: 0.107, steps: [200, 300] },
 } as const satisfies Record<string, RampSpec>;
 
 export type RampName = keyof typeof RAMPS;

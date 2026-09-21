@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { clearDraft, markJustPlanted, readDraft, saveDraft } from "@/lib/pins/draft";
+import { useCallback, useState } from "react";
 import type { NewPin, PinDetail } from "@/lib/pins/repository";
-import { authIsAvailable, currentAccessToken, onAuthSettled, sendSignInLink } from "@/lib/supabase/browser";
+import { currentAccessToken } from "@/lib/supabase/browser";
 
 async function postPin(pin: NewPin, token: string | null): Promise<PinDetail> {
   const response = await fetch("/api/pins", {
@@ -19,86 +18,31 @@ async function postPin(pin: NewPin, token: string | null): Promise<PinDetail> {
   return body as PinDetail;
 }
 
-type Outcome = { kind: "planted"; pin: PinDetail } | { kind: "needs-sign-in" };
-
-/** Saving a pin, and the email round trip that has to happen first. */
+/**
+ * Saving a pin. Signing in happens before the map is ever shown, so this is one
+ * authenticated request with nothing to hold across a page load: no draft, no
+ * email round trip, and no state that can be lost in between.
+ */
 export function usePlanting(onPlanted: (pin: PinDetail) => void) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [restoreError, setRestoreError] = useState<string | null>(null);
-
-  const finish = useCallback(
-    (pin: PinDetail) => {
-      clearDraft();
-      onPlanted(pin);
-    },
-    [onPlanted],
-  );
-
-  // Returning from an email link: whatever was written before leaving is saved.
-  // The session arrives after the page does, so this waits for it rather than
-  // asking once and giving up.
-  useEffect(() => {
-    if (!authIsAvailable) return;
-    const draft = readDraft();
-    if (!draft) return;
-
-    let planted = false;
-    return onAuthSettled((token) => {
-      if (!token || planted) return;
-      planted = true;
-      postPin(draft, token).then(
-        (pin) => {
-          markJustPlanted();
-          finish(pin);
-        },
-        (cause: unknown) => {
-          // The draft is kept. Throwing away what someone wrote and saying
-          // nothing is how this failed silently twice.
-          setRestoreError(cause instanceof Error ? cause.message : "Your pin did not save");
-        },
-      );
-    });
-  }, [finish]);
 
   const plant = useCallback(
-    async (pin: NewPin): Promise<Outcome | null> => {
+    async (pin: NewPin): Promise<boolean> => {
       setError(null);
-      const token = authIsAvailable ? await currentAccessToken() : null;
-
-      if (authIsAvailable && !token) {
-        saveDraft(pin);
-        return { kind: "needs-sign-in" };
-      }
-
       setBusy(true);
       try {
-        const saved = await postPin(pin, token);
-        finish(saved);
-        return { kind: "planted", pin: saved };
+        onPlanted(await postPin(pin, await currentAccessToken()));
+        return true;
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : "Unable to save your pin");
-        return null;
+        return false;
       } finally {
         setBusy(false);
       }
     },
-    [finish],
+    [onPlanted],
   );
 
-  const sendLink = useCallback(async (email: string): Promise<boolean> => {
-    setBusy(true);
-    setError(null);
-    try {
-      await sendSignInLink(email.trim());
-      return true;
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not send the link");
-      return false;
-    } finally {
-      setBusy(false);
-    }
-  }, []);
-
-  return { plant, sendLink, busy, error, restoreError, pendingDraft: readDraft };
+  return { plant, busy, error };
 }

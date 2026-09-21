@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircleIcon, CrosshairIcon, EnvelopeSimpleIcon } from "@phosphor-icons/react";
+import { CheckCircleIcon, CrosshairIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 
@@ -113,78 +113,6 @@ export function DescribeStep({
         </Button>
       </div>
     </form>
-  );
-}
-
-export function SignInStep({
-  email,
-  onChange,
-  onSend,
-  onBack,
-  sending,
-  error,
-}: {
-  email: string;
-  onChange: (value: string) => void;
-  onSend: () => void;
-  onBack: () => void;
-  sending: boolean;
-  error: string | null;
-}) {
-  return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault();
-        onSend();
-      }}
-    >
-      <h2 className="text-xl font-semibold text-text-primary">Confirm it is you</h2>
-      <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-text-body">
-        We send a link that signs you in. It also lets you edit or remove your pin later.
-      </p>
-      <div className="mt-4">
-        <Field
-          label="Email"
-          value={email}
-          onChange={onChange}
-          placeholder="name@example.com"
-          hint="Kept private. Only people who are on the map can ask to reach you."
-          autoFocus
-          required
-          type="email"
-          inputMode="email"
-          autoComplete="email"
-        />
-      </div>
-      {error ? (
-        <p role="alert" className="mt-3 text-sm text-clay-700">
-          {error}
-        </p>
-      ) : null}
-      <div className="mt-4 flex items-center gap-2">
-        <Button type="submit" disabled={sending}>
-          <EnvelopeSimpleIcon size={16} weight="regular" aria-hidden />
-          {sending ? "Sending" : "Send my link"}
-        </Button>
-        <Button variant="quiet" onClick={onBack}>
-          Back
-        </Button>
-      </div>
-    </form>
-  );
-}
-
-export function SentStep({ email, onClose }: { email: string; onClose: () => void }) {
-  return (
-    <>
-      <h2 className="text-xl font-semibold text-text-primary">Check your email</h2>
-      <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-text-body">
-        A sign-in link is on its way to {email}. Open it and your pin goes up.
-      </p>
-      <div className="mt-4">
-        <Button onClick={onClose}>Done</Button>
-      </div>
-    </>
   );
 }
 

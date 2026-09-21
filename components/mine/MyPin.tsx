@@ -37,12 +37,10 @@ type Props = {
   pin: OwnPin;
   map: MapLibreMap | null;
   controls: ReturnType<typeof useMyPin>;
-  /** True just after an email link planted this pin, so it gets a greeting. */
-  justPlanted?: boolean;
   onClose: () => void;
 };
 
-export function MyPin({ pin, map, controls, justPlanted = false, onClose }: Props) {
+export function MyPin({ pin, map, controls, onClose }: Props) {
   const [screen, setScreen] = useState<Screen>("summary");
   const [values, setValues] = useState<EditValues>(() => toValues(pin));
   const [busy, setBusy] = useState(false);
@@ -110,7 +108,7 @@ export function MyPin({ pin, map, controls, justPlanted = false, onClose }: Prop
       {screen === "moving" ? <PlacementGhost /> : null}
       <Panel label={LABELS[screen]} focusKey={screen}>
         <motion.div key={screen} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.12 }}>
-          {screenViews({ pin, values, setValues, setScreen, busy, error, onClose, justPlanted, onSignOut: leave, saveEdits, saveMove, confirmRemove })[screen]}
+          {screenViews({ pin, values, setValues, setScreen, busy, error, onClose, onSignOut: leave, saveEdits, saveMove, confirmRemove })[screen]}
         </motion.div>
       </Panel>
     </>
@@ -125,7 +123,6 @@ type ViewArgs = {
   busy: boolean;
   error: string | null;
   onClose: () => void;
-  justPlanted: boolean;
   onSignOut: () => void;
   saveEdits: () => void;
   saveMove: () => void;
@@ -134,7 +131,7 @@ type ViewArgs = {
 
 /** One entry per screen, so adding one never adds a branch to the component. */
 function screenViews(args: ViewArgs): Record<Screen, ReactNode> {
-  const { pin, values, setValues, setScreen, busy, error, onClose, justPlanted } = args;
+  const { pin, values, setValues, setScreen, busy, error, onClose } = args;
   return {
     summary: (
       <SummaryStep
@@ -143,7 +140,6 @@ function screenViews(args: ViewArgs): Record<Screen, ReactNode> {
         onMove={() => setScreen("moving")}
         onRemove={() => setScreen("removing")}
         onSignOut={args.onSignOut}
-        justPlanted={args.justPlanted}
         onClose={onClose}
       />
     ),

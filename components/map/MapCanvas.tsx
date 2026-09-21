@@ -14,6 +14,7 @@ import { PinCard } from "./PinCard";
 import { SELECTED_LAYER_ID, selectionFilter } from "./pin-layers";
 import { useMapInstance } from "./useMapInstance";
 import { usePinInteractions } from "./usePinInteractions";
+import { useOrientToViewer } from "./useOrientToViewer";
 import { usePinSource } from "./usePinSource";
 
 export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
@@ -24,6 +25,7 @@ export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
   const { state, prefetch } = usePinDetail(selected);
   const contact = useContact(selected);
   useEnsureContact();
+  useOrientToViewer(map, layersReady);
 
   const dismiss = useCallback(() => setSelected(null), []);
 

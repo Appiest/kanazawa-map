@@ -22,7 +22,7 @@ export async function sendSignInLink(email: string): Promise<void> {
 
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: window.location.origin },
+    options: { emailRedirectTo: `${window.location.origin}/map` },
   });
   if (error) throw new Error(error.message);
 }

@@ -22,11 +22,23 @@
   --color-green-700: oklch(0.487 0.1248 152); /* #09733a */
   --color-green-800: oklch(0.384 0.0989 152); /* #045227 */
   --color-green-900: oklch(0.286 0.0746 152); /* #013416 */
-  --color-water-100: oklch(0.9585 0.0187 232); /* #e6f4fc */
-  --color-water-200: oklch(0.928 0.0231 232); /* #d9eaf4 */
-  --color-water-300: oklch(0.882 0.0303 232); /* #c5dce9 */
-  --color-water-400: oklch(0.8 0.0413 232); /* #a4c3d4 */
-  --color-water-700: oklch(0.487 0.0517 232); /* #416578 */
   --color-clay-500: oklch(0.7 0.1334 35); /* #e47d64 */
   --color-clay-700: oklch(0.487 0.1363 35); /* #9e3b23 */
+  --color-land-50: oklch(0.985 0.0140 82); /* #fff9f0 */
+  --color-land-100: oklch(0.9585 0.0201 82); /* #f8f0e3 */
+  --color-land-200: oklch(0.928 0.0248 82); /* #f0e6d5 */
+  --color-land-300: oklch(0.882 0.0324 82); /* #e3d7c1 */
+  --color-land-400: oklch(0.8 0.0442 82); /* #ccbc9e */
+  --color-land-500: oklch(0.7 0.0543 82); /* #af9c78 */
+  --color-water-100: oklch(0.9585 0.0234 232); /* #e3f5ff */
+  --color-water-200: oklch(0.928 0.0410 232); /* #cdedfe */
+  --color-water-300: oklch(0.882 0.0550 232); /* #b5dff7 */
+  --color-water-400: oklch(0.8 0.0750 232); /* #8cc7e6 */
+  --color-water-500: oklch(0.7 0.0920 232); /* #5ea9ce */
+  --color-water-700: oklch(0.487 0.0940 232); /* #11688b */
+  --color-sage-200: oklch(0.928 0.0290 125); /* #e3ebd6 */
+  --color-sage-300: oklch(0.882 0.0380 125); /* #d2ddc2 */
+  --color-sage-400: oklch(0.8 0.0518 125); /* #b6c4a0 */
+  --color-sand-200: oklch(0.928 0.0449 75); /* #f9e4c7 */
+  --color-sand-300: oklch(0.882 0.0589 75); /* #efd3ae */
 }

@@ -309,6 +309,15 @@ export async function deleteOwnPin(accessToken: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+/** How many people are on the map, for the landing page. */
+export async function countPins(): Promise<number> {
+  const supabase = readOnlyClient();
+  if (!supabase) return allLocalPins().length;
+
+  const { count } = await supabase.from("pins").select("seq", { count: "exact", head: true });
+  return count ?? 0;
+}
+
 export function listAnchorPlaces(): AnchorPlace[] {
   return anchorPlaces as AnchorPlace[];
 }
