@@ -35,6 +35,7 @@ function stepViews(flow: AddPinFlowState): Record<OpenStep, ReactNode> {
         displayName={flow.details.displayName}
         neighborhood={flow.details.neighborhood}
         note={flow.details.note}
+        precision={flow.details.precision}
         onChange={flow.patchDetails}
         onBack={flow.back}
         onSubmit={flow.submit}

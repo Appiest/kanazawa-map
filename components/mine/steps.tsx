@@ -148,7 +148,7 @@ export function MoveStep({ onConfirm, onCancel, saving }: { onConfirm: () => voi
         Move the map until the tag sits where you want to be found.
       </p>
       <p className="mt-3 border-t border-separator pt-3 text-sm text-text-secondary">
-        Anyone visiting the map sees this exact spot.
+        Your tag keeps the precision it has now. Change that under Edit details.
       </p>
       <div className="mt-4 flex items-center gap-2">
         <Button onClick={onConfirm} disabled={saving}>

@@ -11,6 +11,12 @@ const NAME_FIELDS = ["neighbourhood", "suburb", "quarter", "village", "town", "c
 
 type NominatimAddress = Record<string, string | undefined>;
 
+type NominatimResult = {
+  address?: NominatimAddress;
+  lat?: string;
+  lon?: string;
+};
+
 function pickPlaceName(address: NominatimAddress): string | null {
   for (const field of NAME_FIELDS) {
     const value = address[field];
@@ -49,13 +55,20 @@ export async function GET(request: Request) {
     });
     if (!response.ok) throw new Error(`Nominatim returned ${response.status}`);
 
-    const body = (await response.json()) as { address?: NominatimAddress };
+    const body = (await response.json()) as NominatimResult;
+    const centre = { lat: Number(body.lat), lng: Number(body.lon) };
+
     return Response.json(
-      { name: pickPlaceName(body.address ?? {}) },
+      {
+        name: pickPlaceName(body.address ?? {}),
+        // Where the neighborhood itself sits. A pin set to neighborhood
+        // precision is stored here instead of on somebody's doorstep.
+        centre: Number.isFinite(centre.lat) && Number.isFinite(centre.lng) ? centre : null,
+      },
       { headers: { "Cache-Control": "public, s-maxage=86400" } },
     );
   } catch {
     // A missing suggestion is not an error worth showing; the field stays typed.
-    return Response.json({ name: null });
+    return Response.json({ name: null, centre: null });
   }
 }

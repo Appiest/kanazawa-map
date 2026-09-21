@@ -6,20 +6,23 @@ import { cameraDuration } from "@/lib/motion";
 
 export type Position = { lng: number; lat: number };
 
-async function suggestNeighborhood(lng: number, lat: number): Promise<string> {
+export type Surroundings = { name: string; centre: Position | null };
+
+async function describeSurroundings(lng: number, lat: number): Promise<Surroundings> {
   try {
     const response = await fetch(`/api/geocode/reverse?lat=${lat}&lng=${lng}`);
-    const body = (await response.json()) as { name: string | null };
-    return body.name ?? "";
+    const body = (await response.json()) as { name: string | null; centre: Position | null };
+    return { name: body.name ?? "", centre: body.centre };
   } catch {
     // A missing suggestion just leaves the field empty for someone to type.
-    return "";
+    return { name: "", centre: null };
   }
 }
 
 /** Where the tag goes: the map centre, steered by hand or by the browser. */
 export function usePlacement(map: MapLibreMap | null) {
   const [position, setPosition] = useState<Position | null>(null);
+  const [centre, setCentre] = useState<Position | null>(null);
   const [locating, setLocating] = useState(false);
   const [locateError, setLocateError] = useState<string | null>(null);
 
@@ -27,7 +30,10 @@ export function usePlacement(map: MapLibreMap | null) {
     if (!map) return "";
     const center = map.getCenter();
     setPosition({ lng: center.lng, lat: center.lat });
-    return suggestNeighborhood(center.lng, center.lat);
+
+    const surroundings = await describeSurroundings(center.lng, center.lat);
+    setCentre(surroundings.centre);
+    return surroundings.name;
   }, [map]);
 
   const locate = useCallback(() => {
@@ -51,5 +57,5 @@ export function usePlacement(map: MapLibreMap | null) {
     );
   }, [map]);
 
-  return { position, capture, locate, locating, locateError };
+  return { position, centre, capture, locate, locating, locateError };
 }

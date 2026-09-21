@@ -3,6 +3,7 @@ import anchorPlaces from "@/data/anchor-places.json";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { clientForToken, isSupabaseConfigured, readOnlyClient } from "@/lib/supabase/server";
 import type { PinPoint } from "./format";
+import { enforceRateLimit } from "./rateLimit";
 
 export type PinDetail = {
   seq: number;
@@ -19,15 +20,24 @@ export type AnchorPlace = {
   lat: number;
 };
 
+/** How truthfully a pin reports where somebody is. */
+export type Precision = "neighborhood" | "exact";
+
 export type NewPin = {
   displayName: string;
   neighborhood: string;
   note: string | null;
+  /**
+   * Already reduced to what will be stored. A neighborhood pin carries the
+   * neighborhood's centre, so the precise spot never reaches the server at all
+   * and cannot leak from a table nobody meant to expose.
+   */
   lng: number;
   lat: number;
+  precision: Precision;
 };
 
-type StoredPin = PinDetail & { lng: number; lat: number };
+type StoredPin = PinDetail & { lng: number; lat: number; precision?: Precision };
 
 const seed = seedPins as StoredPin[];
 
@@ -161,6 +171,7 @@ export async function createPin(input: NewPin, accessToken: string | null): Prom
   const supabase = signedInClient(accessToken);
   const owner = await requireOwner(supabase);
   const ownerId = owner.id;
+  await enforceRateLimit(supabase, ownerId, "pin.write");
 
   // Row-level security also enforces one pin per person; upsert keeps a second
   // visit from failing on the unique owner constraint.
@@ -174,6 +185,7 @@ export async function createPin(input: NewPin, accessToken: string | null): Prom
         note: input.note,
         lng: input.lng,
         lat: input.lat,
+        precision: input.precision,
       },
       { onConflict: "owner_id" },
     )
@@ -248,6 +260,7 @@ export type OwnPin = {
   note: string | null;
   lng: number;
   lat: number;
+  precision: Precision;
   instagram: string | null;
   website: string | null;
 };
@@ -259,6 +272,7 @@ type OwnPinRow = {
   note: string | null;
   lng: number;
   lat: number;
+  precision: Precision;
   pin_contacts: { instagram: string | null; website: string | null } | null;
 };
 
@@ -269,7 +283,7 @@ export async function findOwnPin(accessToken: string): Promise<OwnPin | null> {
 
   const { data } = await supabase
     .from("pins")
-    .select("seq, display_name, neighborhood, note, lng, lat, pin_contacts (instagram, website)")
+    .select("seq, display_name, neighborhood, note, lng, lat, precision, pin_contacts (instagram, website)")
     .eq("owner_id", owner.id)
     .maybeSingle<OwnPinRow>();
 
@@ -281,6 +295,7 @@ export async function findOwnPin(accessToken: string): Promise<OwnPin | null> {
     note: data.note,
     lng: data.lng,
     lat: data.lat,
+    precision: data.precision,
     instagram: data.pin_contacts?.instagram ?? null,
     website: data.pin_contacts?.website ?? null,
   };
@@ -316,6 +331,99 @@ export async function countPins(): Promise<number> {
 
   const { count } = await supabase.from("pins").select("seq", { count: "exact", head: true });
   return count ?? 0;
+}
+
+export type OpenReport = {
+  id: string;
+  reason: string;
+  createdAt: string;
+  pin: { seq: number; displayName: string; neighborhood: string; note: string | null } | null;
+};
+
+/** Filed by anyone signed in; readable only by a moderator. */
+export async function reportPin(accessToken: string, seq: number, reason: string): Promise<void> {
+  const supabase = signedInClient(accessToken);
+  const owner = await requireOwner(supabase);
+  await enforceRateLimit(supabase, owner.id, "pin.report");
+
+  const { data: pin } = await supabase.from("pins").select("id").eq("seq", seq).maybeSingle();
+  if (!pin) throw new Error("No pin with that number");
+
+  const { error } = await supabase
+    .from("pin_reports")
+    .insert({ pin_id: pin.id, reporter_id: owner.id, reason });
+  if (error) throw new Error(error.message);
+}
+
+export async function isModerator(accessToken: string): Promise<boolean> {
+  const supabase = signedInClient(accessToken);
+  const { data } = await supabase.rpc("is_moderator");
+  return data === true;
+}
+
+export async function listOpenReports(accessToken: string): Promise<OpenReport[]> {
+  const supabase = signedInClient(accessToken);
+
+  const { data, error } = await supabase
+    .from("pin_reports")
+    .select("id, reason, created_at, pins (seq, display_name, neighborhood, note)")
+    .is("resolved_at", null)
+    .order("created_at", { ascending: true })
+    .limit(100);
+
+  if (error) throw new Error(error.message);
+
+  type PinRow = { seq: number; display_name: string; neighborhood: string; note: string | null };
+  type Row = { id: string; reason: string; created_at: string; pins: PinRow | PinRow[] | null };
+
+  // A joined row arrives as an object or a single-element array depending on
+  // how the relationship is inferred, so both shapes are read the same way.
+  const first = (pins: Row["pins"]): PinRow | null =>
+    Array.isArray(pins) ? (pins[0] ?? null) : pins;
+
+  return ((data ?? []) as unknown as Row[]).map((row) => {
+    const pin = first(row.pins);
+    return {
+      id: row.id,
+      reason: row.reason,
+      createdAt: row.created_at,
+      pin: pin
+        ? {
+            seq: pin.seq,
+            displayName: pin.display_name,
+            neighborhood: pin.neighborhood,
+            note: pin.note,
+          }
+        : null,
+    };
+  });
+}
+
+/** Dismissing leaves the pin up; removing takes it down and closes the report. */
+export async function resolveReport(
+  accessToken: string,
+  reportId: string,
+  outcome: "dismiss" | "remove",
+): Promise<void> {
+  const supabase = signedInClient(accessToken);
+
+  if (outcome === "remove") {
+    const { data: report } = await supabase
+      .from("pin_reports")
+      .select("pin_id")
+      .eq("id", reportId)
+      .maybeSingle();
+    if (report?.pin_id) {
+      const { error } = await supabase.from("pins").delete().eq("id", report.pin_id);
+      if (error) throw new Error(error.message);
+    }
+  }
+
+  const { error } = await supabase
+    .from("pin_reports")
+    .update({ resolved_at: new Date().toISOString() })
+    .eq("id", reportId);
+  if (error) throw new Error(error.message);
 }
 
 export function listAnchorPlaces(): AnchorPlace[] {

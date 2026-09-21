@@ -2,15 +2,20 @@
 
 import { useCallback, useState } from "react";
 import type { Map as MapLibreMap } from "maplibre-gl";
-import type { PinDetail } from "@/lib/pins/repository";
+import type { PinDetail, Precision } from "@/lib/pins/repository";
 import { usePlacement } from "./usePlacement";
 import { usePlanting } from "./usePlanting";
 
 export type Step = "closed" | "placing" | "describing" | "done";
 
-export type Details = { displayName: string; neighborhood: string; note: string };
+export type Details = {
+  displayName: string;
+  neighborhood: string;
+  note: string;
+  precision: Precision;
+};
 
-const EMPTY: Details = { displayName: "", neighborhood: "", note: "" };
+const EMPTY: Details = { displayName: "", neighborhood: "", note: "", precision: "neighborhood" };
 
 /**
  * Placing a pin, now that signing in happens before the map is ever shown.
@@ -25,7 +30,7 @@ export function useAddPin(map: MapLibreMap | null, onPlanted: () => void) {
   const planting = usePlanting(
     useCallback(
       (pin: PinDetail) => {
-        setDetails({ displayName: pin.displayName, neighborhood: pin.neighborhood, note: "" });
+        setDetails((current) => ({ ...current, displayName: pin.displayName, neighborhood: pin.neighborhood, note: "" }));
         setStep("done");
         onPlanted();
       },
@@ -40,14 +45,22 @@ export function useAddPin(map: MapLibreMap | null, onPlanted: () => void) {
   }, [placement]);
 
   const submit = useCallback(async () => {
-    if (!placement.position) return;
+    // A neighborhood pin sends the neighborhood's centre and nothing else, so
+    // the exact spot never leaves this browser. Without a centre to fall back
+    // on, the safer choice is to refuse rather than silently publish the spot.
+    const exact = placement.position;
+    const point = details.precision === "exact" ? exact : placement.centre;
+    if (!point) return;
+
     await planting.plant({
       displayName: details.displayName.trim(),
       neighborhood: details.neighborhood.trim(),
       note: details.note.trim() || null,
-      ...placement.position,
+      lng: point.lng,
+      lat: point.lat,
+      precision: details.precision,
     });
-  }, [details, placement.position, planting]);
+  }, [details, placement.position, placement.centre, planting]);
 
   return {
     step,

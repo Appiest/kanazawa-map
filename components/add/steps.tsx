@@ -2,7 +2,9 @@
 
 import { CheckCircleIcon, CrosshairIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/Button";
+import { Choice, type Option } from "@/components/ui/Choice";
 import { Field } from "@/components/ui/Field";
+import type { Precision } from "@/lib/pins/repository";
 
 export function PlacementStep({
   onLocate,
@@ -22,8 +24,8 @@ export function PlacementStep({
         Move the map until the tag sits where you want to be found.
       </p>
       <p className="mt-3 border-t border-separator pt-3 text-sm text-text-secondary">
-        Anyone visiting the map sees this exact spot, so many people pick a nearby corner or cafe
-        rather than their home.
+        Nobody sees this exact spot unless you ask for that on the next step. By default your tag
+        sits on the neighborhood.
       </p>
       <div className="mt-4 flex items-center gap-2">
         <Button onClick={onConfirm}>Place my tag here</Button>
@@ -39,10 +41,81 @@ export function PlacementStep({
   );
 }
 
+/** Named for what each does to the map, not for how precise it sounds. */
+function precisionOptions(neighborhood: string): readonly Option<Precision>[] {
+  const place = neighborhood.trim() || "your neighborhood";
+  return [
+    {
+      value: "neighborhood",
+      label: `Somewhere in ${place}`,
+      detail: "Your tag sits on the neighborhood. Nobody can tell which street.",
+    },
+    {
+      value: "exact",
+      label: "The exact spot I picked",
+      detail: "Your tag sits where you placed it, for anyone on the map to see.",
+    },
+  ];
+}
+
+type DescribeValues = {
+  displayName: string;
+  neighborhood: string;
+  note: string;
+  precision: Precision;
+  onChange: (patch: {
+    displayName?: string;
+    neighborhood?: string;
+    note?: string;
+    precision?: Precision;
+  }) => void;
+};
+
+function DescribeFields({ displayName, neighborhood, note, precision, onChange }: DescribeValues) {
+  return (
+    <>
+      <Field
+        label="Name"
+        value={displayName}
+        onChange={(value) => onChange({ displayName: value })}
+        placeholder="Mika"
+        autoFocus
+        required
+        maxLength={40}
+        autoComplete="given-name"
+      />
+      <Field
+        label="Neighborhood"
+        value={neighborhood}
+        onChange={(value) => onChange({ neighborhood: value })}
+        placeholder="Sawtelle"
+        required
+        maxLength={60}
+      />
+      <Field
+        label="A line about you"
+        value={note}
+        onChange={(value) => onChange({ note: value })}
+        placeholder="Looking for a taiko group that takes beginners."
+        hint="Optional. What you are into, or what you are looking for."
+        maxLength={180}
+        multiline
+      />
+      <Choice
+        legend="Where your tag sits"
+        value={precision}
+        options={precisionOptions(neighborhood)}
+        onChange={(value) => onChange({ precision: value })}
+      />
+    </>
+  );
+}
+
 export function DescribeStep({
   displayName,
   neighborhood,
   note,
+  precision,
   onChange,
   onBack,
   onSubmit,
@@ -53,7 +126,13 @@ export function DescribeStep({
   displayName: string;
   neighborhood: string;
   note: string;
-  onChange: (patch: { displayName?: string; neighborhood?: string; note?: string }) => void;
+  precision: Precision;
+  onChange: (patch: {
+    displayName?: string;
+    neighborhood?: string;
+    note?: string;
+    precision?: Precision;
+  }) => void;
   onBack: () => void;
   onSubmit: () => void;
   submitLabel: string;
@@ -68,33 +147,13 @@ export function DescribeStep({
       }}
     >
       <h2 className="text-xl font-semibold text-text-primary">Tell people who they are meeting</h2>
-      <div className="mt-4 space-y-3">
-        <Field
-          label="Name"
-          value={displayName}
-          onChange={(value) => onChange({ displayName: value })}
-          placeholder="Mika"
-          autoFocus
-          required
-          maxLength={40}
-          autoComplete="given-name"
-        />
-        <Field
-          label="Neighborhood"
-          value={neighborhood}
-          onChange={(value) => onChange({ neighborhood: value })}
-          placeholder="Sawtelle"
-          required
-          maxLength={60}
-        />
-        <Field
-          label="A line about you"
-          value={note}
-          onChange={(value) => onChange({ note: value })}
-          placeholder="Looking for a taiko group that takes beginners."
-          hint="Optional. What you are into, or what you are looking for."
-          maxLength={180}
-          multiline
+      <div className="mt-4 max-h-[52vh] space-y-3 overflow-y-auto pr-1">
+        <DescribeFields
+          displayName={displayName}
+          neighborhood={neighborhood}
+          note={note}
+          precision={precision}
+          onChange={onChange}
         />
       </div>
       {error ? (

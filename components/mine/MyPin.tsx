@@ -75,6 +75,7 @@ export function MyPin({ pin, map, controls, onClose }: Props) {
         note: trimmed(values.note),
         lng: pin.lng,
         lat: pin.lat,
+        precision: pin.precision,
       });
       await controls.saveHandles({
         instagram: trimmed(values.instagram),
@@ -92,6 +93,7 @@ export function MyPin({ pin, map, controls, onClose }: Props) {
         note: pin.note,
         lng: center.lng,
         lat: center.lat,
+        precision: pin.precision,
       });
     }, () => setScreen("summary"));
 

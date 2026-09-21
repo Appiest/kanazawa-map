@@ -27,6 +27,9 @@ const newPinSchema = z.object({
   note: z.string().trim().max(180).nullable(),
   lng: z.number().min(-180).max(180),
   lat: z.number().min(-90).max(90),
+  // Defaults to the safer of the two, so a caller that omits it cannot end up
+  // publishing somebody's doorstep by accident.
+  precision: z.enum(["neighborhood", "exact"]).default("neighborhood"),
 });
 
 function bearerToken(request: Request): string | null {
