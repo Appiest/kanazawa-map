@@ -16,6 +16,24 @@ export function browserClient(): SupabaseClient | null {
   return client;
 }
 
+/**
+ * Supabase reports these in developer language. Nobody signing up should be
+ * shown "email rate limit exceeded" and left to work out what to do about it.
+ */
+function readableAuthError(message: string): string {
+  const text = message.toLowerCase();
+  if (text.includes("rate limit") || text.includes("too many")) {
+    return "Too many sign-in emails have gone out just now. Try again in a few minutes.";
+  }
+  if (text.includes("invalid") && text.includes("email")) {
+    return "Check the email address and try again.";
+  }
+  if (text.includes("smtp") || text.includes("sending")) {
+    return "The sign-in email could not be sent. Try again shortly.";
+  }
+  return "Could not send the link. Check the address and try again.";
+}
+
 export async function sendSignInLink(email: string): Promise<void> {
   const supabase = browserClient();
   if (!supabase) throw new Error("Sign-in is not set up yet");
@@ -24,7 +42,7 @@ export async function sendSignInLink(email: string): Promise<void> {
     email,
     options: { emailRedirectTo: `${window.location.origin}/map` },
   });
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(readableAuthError(error.message));
 }
 
 /** Leaving a shared computer without leaving your pin editable. */
