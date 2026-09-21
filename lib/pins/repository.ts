@@ -207,6 +207,74 @@ export async function ensureOwnContact(accessToken: string): Promise<boolean> {
   return true;
 }
 
+export type OwnPin = {
+  seq: number;
+  displayName: string;
+  neighborhood: string;
+  note: string | null;
+  lng: number;
+  lat: number;
+  instagram: string | null;
+  website: string | null;
+};
+
+type OwnPinRow = {
+  seq: number;
+  display_name: string;
+  neighborhood: string;
+  note: string | null;
+  lng: number;
+  lat: number;
+  pin_contacts: { instagram: string | null; website: string | null } | null;
+};
+
+/** The signed-in person's own pin, so they can change or remove it. */
+export async function findOwnPin(accessToken: string): Promise<OwnPin | null> {
+  const supabase = signedInClient(accessToken);
+  const owner = await requireOwner(supabase);
+
+  const { data } = await supabase
+    .from("pins")
+    .select("seq, display_name, neighborhood, note, lng, lat, pin_contacts (instagram, website)")
+    .eq("owner_id", owner.id)
+    .maybeSingle<OwnPinRow>();
+
+  if (!data) return null;
+  return {
+    seq: data.seq,
+    displayName: data.display_name,
+    neighborhood: data.neighborhood,
+    note: data.note,
+    lng: data.lng,
+    lat: data.lat,
+    instagram: data.pin_contacts?.instagram ?? null,
+    website: data.pin_contacts?.website ?? null,
+  };
+}
+
+export type ContactHandles = { instagram: string | null; website: string | null };
+
+export async function updateOwnContact(accessToken: string, handles: ContactHandles): Promise<void> {
+  const supabase = signedInClient(accessToken);
+  const owner = await requireOwner(supabase);
+
+  const { error } = await supabase
+    .from("pin_contacts")
+    .update(handles)
+    .eq("owner_id", owner.id);
+
+  if (error) throw new Error(error.message);
+}
+
+/** Taking yourself off the map. The contact row goes with it, by cascade. */
+export async function deleteOwnPin(accessToken: string): Promise<void> {
+  const supabase = signedInClient(accessToken);
+  const owner = await requireOwner(supabase);
+
+  const { error } = await supabase.from("pins").delete().eq("owner_id", owner.id);
+  if (error) throw new Error(error.message);
+}
+
 export function listAnchorPlaces(): AnchorPlace[] {
   return anchorPlaces as AnchorPlace[];
 }

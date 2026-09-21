@@ -7,7 +7,7 @@ import { useContact } from "@/lib/pins/useContact";
 import { useEnsureContact } from "@/lib/pins/useEnsureContact";
 import { usePinDetail } from "@/lib/pins/usePinDetail";
 import { useEscapeKey } from "@/lib/useEscapeKey";
-import { AddPinFlow } from "@/components/add/AddPinFlow";
+import { PinControls } from "@/components/mine/PinControls";
 import { PinCard } from "./PinCard";
 import { SELECTED_LAYER_ID, selectionFilter } from "./pin-layers";
 import { useMapInstance } from "./useMapInstance";
@@ -44,7 +44,7 @@ export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
     <div className="absolute inset-0 bg-bg-page">
       <div ref={container} className="h-full w-full" />
       <PinCard detail={state} contact={contact} onClose={dismiss} />
-      <AddPinFlow map={map} onPlanted={refresh} onOpen={dismiss} />
+      <PinControls map={map} onChanged={refresh} onOpen={dismiss} />
     </div>
   );
 }
