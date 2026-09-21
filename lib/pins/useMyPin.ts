@@ -2,9 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { ContactHandles, NewPin, OwnPin } from "./repository";
+import { takeJustPlanted } from "./draft";
 import { authIsAvailable, currentAccessToken } from "@/lib/supabase/browser";
 
-type State = { status: "unknown" } | { status: "none" } | { status: "mine"; pin: OwnPin };
+type State =
+  | { status: "unknown" }
+  | { status: "none" }
+  | { status: "mine"; pin: OwnPin; justPlanted: boolean };
 
 const NO_PIN: State = { status: "none" };
 
@@ -24,7 +28,9 @@ async function loadOwnPin(): Promise<State> {
   if (!response?.ok) return NO_PIN;
 
   const body = (await response.json()) as { pin: OwnPin | null };
-  return body.pin ? { status: "mine", pin: body.pin } : NO_PIN;
+  // Consumed here rather than in an effect, so arriving from an email link and
+  // an ordinary visit take the same path.
+  return body.pin ? { status: "mine", pin: body.pin, justPlanted: takeJustPlanted() } : NO_PIN;
 }
 
 /** The signed-in person's own pin, and the ways they can change it. */

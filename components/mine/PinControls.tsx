@@ -22,6 +22,7 @@ type Props = {
  */
 export function PinControls({ map, onChanged, onOpen }: Props) {
   const controls = useMyPin(onChanged);
+  const [dismissed, setDismissed] = useState(false);
   const [managing, setManaging] = useState(false);
 
   const afterPlanting = useCallback(() => {
@@ -35,7 +36,11 @@ export function PinControls({ map, onChanged, onOpen }: Props) {
     return <AddPinFlow map={map} onPlanted={afterPlanting} onOpen={onOpen} />;
   }
 
-  if (!managing) {
+  // Someone arriving from their email link lands on their own pin rather than
+  // on a map that looks unchanged.
+  const greeting = controls.state.justPlanted && !dismissed;
+
+  if (!managing && !greeting) {
     return (
       <div className={CORNER} data-touch-target>
         <Button
@@ -56,7 +61,11 @@ export function PinControls({ map, onChanged, onOpen }: Props) {
       pin={controls.state.pin}
       map={map}
       controls={controls}
-      onClose={() => setManaging(false)}
+      justPlanted={greeting}
+      onClose={() => {
+        setManaging(false);
+        setDismissed(true);
+      }}
     />
   );
 }

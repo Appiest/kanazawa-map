@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { clearDraft, readDraft, saveDraft } from "@/lib/pins/draft";
+import { clearDraft, markJustPlanted, readDraft, saveDraft } from "@/lib/pins/draft";
 import type { NewPin, PinDetail } from "@/lib/pins/repository";
 import { authIsAvailable, currentAccessToken, sendSignInLink } from "@/lib/supabase/browser";
 
@@ -42,7 +42,10 @@ export function usePlanting(onPlanted: (pin: PinDetail) => void) {
 
     currentAccessToken().then((token) => {
       if (!token) return;
-      postPin(draft, token).then(finish, () => clearDraft());
+      postPin(draft, token).then((pin) => {
+        markJustPlanted();
+        finish(pin);
+      }, () => clearDraft());
     });
   }, [finish]);
 
