@@ -95,6 +95,28 @@ export async function findPinDetail(seq: number): Promise<PinDetail | null> {
   };
 }
 
+/** Several pins at once, for the keyboard layer's labels. */
+export async function findPinDetails(seqs: number[]): Promise<PinDetail[]> {
+  const supabase = readOnlyClient();
+  if (!supabase) {
+    const wanted = new Set(seqs);
+    return allLocalPins().filter((pin) => wanted.has(pin.seq)).map(toDetail);
+  }
+
+  const { data, error } = await supabase
+    .from("pins")
+    .select("seq, display_name, neighborhood, note")
+    .in("seq", seqs);
+
+  if (error) throw new Error(`Could not load pins: ${error.message}`);
+  return (data ?? []).map((row) => ({
+    seq: row.seq,
+    displayName: row.display_name,
+    neighborhood: row.neighborhood,
+    note: row.note,
+  }));
+}
+
 function nextLocalSeq(): number {
   return allLocalPins().reduce((highest, pin) => Math.max(highest, pin.seq), 0) + 1;
 }

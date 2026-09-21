@@ -92,7 +92,7 @@ export function MyPin({ pin, map, controls, onClose }: Props) {
   return (
     <>
       {screen === "moving" ? <PlacementGhost /> : null}
-      <Panel label={LABELS[screen]}>
+      <Panel label={LABELS[screen]} focusKey={screen}>
         <motion.div key={screen} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.12 }}>
           {screenViews({ pin, values, setValues, setScreen, busy, error, onClose, saveEdits, saveMove, confirmRemove })[screen]}
         </motion.div>

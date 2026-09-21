@@ -86,7 +86,7 @@ export function AddPinFlow({ map, onPlanted, onOpen }: Props) {
   return (
     <>
       {flow.step === "placing" ? <PlacementGhost /> : null}
-      <Panel label={LABELS[flow.step]}>
+      <Panel label={LABELS[flow.step]} focusKey={flow.step}>
         {/* Keyed so each step fades in on mount. No exit animation, because a
             step must never wait on one finishing to become visible. */}
         <motion.div

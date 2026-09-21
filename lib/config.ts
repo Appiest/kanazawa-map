@@ -22,6 +22,9 @@ export const MAX_BOUNDS: [[number, number], [number, number]] = [
   [-40, 72],
 ];
 
+/** Working title. Every visible mention of the product reads from here. */
+export const APP_NAME = "Kanazawa";
+
 export const PIN_SOURCE_ID = "pins";
 export const ANCHOR_SOURCE_ID = "anchors";
 export const BASEMAP_SOURCE_ID = "protomaps";

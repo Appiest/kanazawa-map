@@ -1,7 +1,7 @@
 "use client";
 
+import { useEffect, useRef, type ReactNode } from "react";
 import { motion } from "motion/react";
-import type { ReactNode } from "react";
 
 /** Every floating surface on the map takes its shape and motion from here. */
 export const PANEL_MOTION = {
@@ -12,22 +12,49 @@ export const PANEL_MOTION = {
 } as const;
 
 const SURFACE =
-  "pointer-events-auto absolute inset-x-4 bottom-4 z-10 rounded-sheet bg-bg-surface p-5 " +
-  "shadow-lg sm:inset-x-auto sm:left-6 sm:bottom-6 sm:w-[22rem]";
+  "pointer-events-auto absolute inset-x-4 bottom-4 z-20 rounded-sheet bg-bg-surface p-5 " +
+  "shadow-lg outline-none sm:inset-x-auto sm:left-6 sm:bottom-6 sm:w-[22rem]";
 
 type Props = {
   children: ReactNode;
   label: string;
+  /** Changing this moves focus back to the panel, for a flow that swaps steps. */
+  focusKey?: string;
   className?: string;
 };
 
 /**
  * One dialog at a time. A multi-step flow swaps what is inside rather than
  * mounting a second panel, so a screen reader is never handed two dialogs.
+ *
+ * Opening moves focus in and closing puts it back where it was, so a keyboard
+ * is never left stranded on the body after a panel disappears.
  */
-export function Panel({ children, label, className = "" }: Props) {
+export function Panel({ children, label, focusKey, className = "" }: Props) {
+  const panel = useRef<HTMLElement>(null);
+  const returnTo = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    returnTo.current = document.activeElement as HTMLElement | null;
+    return () => returnTo.current?.focus?.();
+  }, []);
+
+  useEffect(() => {
+    const node = panel.current;
+    if (!node || node.contains(document.activeElement)) return;
+    node.focus({ preventScroll: true });
+  }, [focusKey]);
+
   return (
-    <motion.aside role="dialog" aria-label={label} {...PANEL_MOTION} className={`${SURFACE} ${className}`}>
+    <motion.aside
+      ref={panel}
+      role="dialog"
+      aria-modal="false"
+      aria-label={label}
+      tabIndex={-1}
+      {...PANEL_MOTION}
+      className={`${SURFACE} ${className}`}
+    >
       {children}
     </motion.aside>
   );

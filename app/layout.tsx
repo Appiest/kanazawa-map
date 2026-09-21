@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo } from "next/font/google";
+import { APP_NAME } from "@/lib/config";
 import "./theme.css";
 
 const archivo = Archivo({
@@ -10,9 +11,14 @@ const archivo = Archivo({
 });
 
 export const metadata: Metadata = {
-  title: "Kanazawa",
-  description:
-    "A map of Asian Americans across the country. Drop a pin where you are and see who else is nearby.",
+  title: APP_NAME,
+  description: "Find Asian Americans near you, and let them find you.",
+  openGraph: {
+    title: APP_NAME,
+    description: "Find Asian Americans near you, and let them find you.",
+    type: "website",
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {

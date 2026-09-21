@@ -8,6 +8,8 @@ import { useEnsureContact } from "@/lib/pins/useEnsureContact";
 import { usePinDetail } from "@/lib/pins/usePinDetail";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 import { PinControls } from "@/components/mine/PinControls";
+import { KeyboardPins } from "./KeyboardPins";
+import { MapHeader } from "./MapHeader";
 import { PinCard } from "./PinCard";
 import { SELECTED_LAYER_ID, selectionFilter } from "./pin-layers";
 import { useMapInstance } from "./useMapInstance";
@@ -17,7 +19,7 @@ import { usePinSource } from "./usePinSource";
 export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
   const container = useRef<HTMLDivElement>(null);
   const map = useMapInstance(container);
-  const { layersReady, refresh } = usePinSource(map, anchors);
+  const { count, error, layersReady, refresh } = usePinSource(map, anchors);
   const [selected, setSelected] = useState<number | null>(null);
   const { state, prefetch } = usePinDetail(selected);
   const contact = useContact(selected);
@@ -43,6 +45,8 @@ export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
   return (
     <div className="absolute inset-0 bg-bg-page">
       <div ref={container} className="h-full w-full" />
+      <MapHeader count={count} error={error} ready={layersReady} />
+      <KeyboardPins map={map} layersReady={layersReady} onSelect={setSelected} />
       <PinCard detail={state} contact={contact} onClose={dismiss} />
       <PinControls map={map} onChanged={refresh} onOpen={dismiss} />
     </div>
