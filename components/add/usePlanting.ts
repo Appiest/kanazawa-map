@@ -25,6 +25,7 @@ type Outcome = { kind: "planted"; pin: PinDetail } | { kind: "needs-sign-in" };
 export function usePlanting(onPlanted: (pin: PinDetail) => void) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
 
   const finish = useCallback(
     (pin: PinDetail) => {
@@ -46,10 +47,17 @@ export function usePlanting(onPlanted: (pin: PinDetail) => void) {
     return onAuthSettled((token) => {
       if (!token || planted) return;
       planted = true;
-      postPin(draft, token).then((pin) => {
-        markJustPlanted();
-        finish(pin);
-      }, () => clearDraft());
+      postPin(draft, token).then(
+        (pin) => {
+          markJustPlanted();
+          finish(pin);
+        },
+        (cause: unknown) => {
+          // The draft is kept. Throwing away what someone wrote and saying
+          // nothing is how this failed silently twice.
+          setRestoreError(cause instanceof Error ? cause.message : "Your pin did not save");
+        },
+      );
     });
   }, [finish]);
 
@@ -92,5 +100,5 @@ export function usePlanting(onPlanted: (pin: PinDetail) => void) {
     }
   }, []);
 
-  return { plant, sendLink, busy, error };
+  return { plant, sendLink, busy, error, restoreError, pendingDraft: readDraft };
 }
