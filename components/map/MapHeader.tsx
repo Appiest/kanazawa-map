@@ -4,15 +4,24 @@ import { APP_NAME } from "@/lib/config";
 
 type Props = {
   count: number | null;
+  visible: number | null;
   error: string | null;
   ready: boolean;
 };
 
-/** Whichever of these is true right now, or nothing. */
-function statusMessage({ count, error, ready }: Props): { text: string; tone: string } | null {
+const QUIET = "text-text-secondary";
+
+/**
+ * Whichever of these is true right now, or nothing. An empty view is the one
+ * people will meet most at first, and it has to read as early rather than
+ * broken, so it says where the map is not empty instead of only what is
+ * missing.
+ */
+function statusMessage({ count, visible, error, ready }: Props): { text: string; tone: string } | null {
   if (error) return { text: "The pins would not load. Check your connection and refresh.", tone: "text-clay-700" };
   if (!ready) return { text: "Loading the map", tone: "text-text-secondary" };
   if (count === 0) return { text: "Nobody has added themselves yet. You can be first.", tone: "text-person-text" };
+  if (visible === 0) return { text: "Nobody here yet. Add your pin, or zoom out to find people.", tone: QUIET };
   return null;
 }
 

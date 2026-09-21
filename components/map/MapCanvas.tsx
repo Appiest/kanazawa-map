@@ -16,6 +16,7 @@ import { useMapInstance } from "./useMapInstance";
 import { usePinInteractions } from "./usePinInteractions";
 import { useOrientToViewer } from "./useOrientToViewer";
 import { usePinSource } from "./usePinSource";
+import { useVisiblePins } from "./useVisiblePins";
 
 export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
   const container = useRef<HTMLDivElement>(null);
@@ -26,6 +27,7 @@ export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
   const contact = useContact(selected);
   useEnsureContact();
   useOrientToViewer(map, layersReady);
+  const visible = useVisiblePins(map, layersReady);
 
   const dismiss = useCallback(() => setSelected(null), []);
 
@@ -47,7 +49,7 @@ export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
   return (
     <div className="absolute inset-0 bg-bg-page">
       <div ref={container} className="h-full w-full" />
-      <MapHeader count={count} error={error} ready={layersReady} />
+      <MapHeader count={count} visible={visible} error={error} ready={layersReady} />
       <KeyboardPins map={map} layersReady={layersReady} onSelect={setSelected} />
       <PinCard detail={state} contact={contact} onClose={dismiss} />
       <PinControls map={map} onChanged={refresh} onOpen={dismiss} />
