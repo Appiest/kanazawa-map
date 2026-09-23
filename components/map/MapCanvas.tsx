@@ -13,7 +13,7 @@ import { useGatheringSource } from "@/components/gatherings/useGatheringSource";
 import { PinControls } from "@/components/mine/PinControls";
 import { useGatherings } from "@/lib/gatherings/useGatherings";
 import { KeyboardPins } from "./KeyboardPins";
-import { InterestFilter } from "./InterestFilter";
+import { InterestFilterButton, InterestFilterPanel } from "./InterestFilter";
 import { MapHeader } from "./MapHeader";
 import { PinCard } from "./PinCard";
 import { SELECTED_LAYER_ID, selectionFilter } from "./pin-layers";
@@ -27,6 +27,7 @@ export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
   const container = useRef<HTMLDivElement>(null);
   const map = useMapInstance(container);
   const [interests, setInterests] = useState<InterestId[]>([]);
+  const [filterOpen, setFilterOpen] = useState(false);
   const { count, error, layersReady, refresh } = usePinSource(map, anchors, interests);
   const [selected, setSelected] = useState<number | null>(null);
   const { state, prefetch } = usePinDetail(selected);
@@ -58,7 +59,17 @@ export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
     <div className="absolute inset-0 bg-bg-page">
       <div ref={container} className="h-full w-full" />
       <MapHeader count={count} visible={visible} error={error} ready={layersReady}>
-        <InterestFilter
+        <InterestFilterButton
+          selected={interests}
+          onClear={() => setInterests([])}
+          onOpen={() => {
+            dismiss();
+            setFilterOpen(true);
+          }}
+        />
+      </MapHeader>
+      {filterOpen ? (
+        <InterestFilterPanel
           selected={interests}
           onToggle={(id) =>
             setInterests((current) =>
@@ -66,9 +77,9 @@ export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
             )
           }
           onClear={() => setInterests([])}
-          onOpen={dismiss}
+          onClose={() => setFilterOpen(false)}
         />
-      </MapHeader>
+      ) : null}
       <KeyboardPins map={map} layersReady={layersReady} onSelect={setSelected} />
       <PinCard detail={state} contact={contact} onClose={dismiss} />
       <PinControls map={map} onChanged={refresh} onOpen={dismiss} />
