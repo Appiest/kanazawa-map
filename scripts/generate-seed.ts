@@ -87,6 +87,22 @@ function pickMetro(): Metro {
   return METROS[0];
 }
 
+const INTEREST_IDS = [
+  "food", "tea", "history", "language", "anime", "music",
+  "taiko", "martial-arts", "crafts", "gardens", "festivals", "film",
+];
+
+/** One to three each, so filtering has something to narrow. */
+function pickInterests(): string[] {
+  const wanted = 1 + Math.floor(random() * 3);
+  const pool = [...INTEREST_IDS];
+  const picked: string[] = [];
+  while (picked.length < wanted && pool.length > 0) {
+    picked.push(pool.splice(Math.floor(random() * pool.length), 1)[0]);
+  }
+  return picked;
+}
+
 const count = Number(process.argv[2] ?? 900);
 const pins = Array.from({ length: count }, (_, index) => {
   const metro = pickMetro();
@@ -95,6 +111,7 @@ const pins = Array.from({ length: count }, (_, index) => {
     displayName: NAMES[Math.floor(random() * NAMES.length)],
     neighborhood: metro.name,
     note: NOTES[Math.floor(random() * NOTES.length)],
+    interests: pickInterests(),
     lng: Number((metro.lng + gaussian() * metro.spread).toFixed(6)),
     lat: Number((metro.lat + gaussian() * metro.spread * 0.75).toFixed(6)),
   };

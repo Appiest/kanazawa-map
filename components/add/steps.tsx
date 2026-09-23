@@ -3,6 +3,8 @@
 import { CheckCircleIcon, CrosshairIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/Button";
 import { Choice, type Option } from "@/components/ui/Choice";
+import { TagPicker } from "@/components/ui/TagPicker";
+import { INTERESTS, MIN_INTERESTS, type InterestId } from "@/lib/interests";
 import { Field } from "@/components/ui/Field";
 import type { Precision } from "@/lib/pins/repository";
 
@@ -170,6 +172,59 @@ export function DescribeStep({
         <Button variant="quiet" onClick={onBack}>
           Move my tag
         </Button>
+      </div>
+    </form>
+  );
+}
+
+export function InterestsStep({
+  selected,
+  onToggle,
+  onBack,
+  onSubmit,
+  saving,
+  error,
+}: {
+  selected: readonly string[];
+  onToggle: (id: InterestId) => void;
+  onBack: () => void;
+  onSubmit: () => void;
+  saving: boolean;
+  error: string | null;
+}) {
+  const enough = selected.length >= MIN_INTERESTS;
+
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (enough) onSubmit();
+      }}
+    >
+      <h2 className="text-xl font-semibold text-text-primary">
+        What parts of Japanese culture are you interested in?
+      </h2>
+      <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-text-body">
+        Pick whatever you would happily talk about. People can filter the map by these to find you.
+      </p>
+      <div className="mt-4 max-h-[42vh] overflow-y-auto pr-1">
+        <TagPicker legend="Your interests" selected={selected} onToggle={onToggle} />
+      </div>
+      {error ? (
+        <p role="alert" className="mt-3 text-sm text-clay-700">
+          {error}
+        </p>
+      ) : null}
+      <div className="mt-4 flex items-center gap-2">
+        <Button type="submit" disabled={!enough || saving}>
+          {saving ? "Saving" : "Add me to the map"}
+        </Button>
+        <Button variant="quiet" onClick={onBack}>
+          Back
+        </Button>
+        {!enough ? (
+          <span className="text-sm text-text-secondary">Pick at least one</span>
+        ) : null}
       </div>
     </form>
   );

@@ -1,8 +1,10 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { APP_NAME } from "@/lib/config";
 
 type Props = {
+  children?: ReactNode;
   count: number | null;
   visible: number | null;
   error: string | null;
@@ -44,6 +46,7 @@ export function MapHeader(props: Props) {
       <p role="status" className={`mt-2 text-sm leading-snug ${status ? status.tone : ""}`}>
         {status?.text ?? ""}
       </p>
+      {props.children}
     </header>
   );
 }

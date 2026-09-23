@@ -3,19 +3,27 @@
 import { useCallback, useState } from "react";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import type { PinDetail, Precision } from "@/lib/pins/repository";
+import type { InterestId } from "@/lib/interests";
 import { usePlacement } from "./usePlacement";
 import { usePlanting } from "./usePlanting";
 
-export type Step = "closed" | "placing" | "describing" | "done";
+export type Step = "closed" | "placing" | "describing" | "interests" | "done";
 
 export type Details = {
   displayName: string;
   neighborhood: string;
   note: string;
   precision: Precision;
+  interests: InterestId[];
 };
 
-const EMPTY: Details = { displayName: "", neighborhood: "", note: "", precision: "neighborhood" };
+const EMPTY: Details = {
+  displayName: "",
+  neighborhood: "",
+  note: "",
+  precision: "neighborhood",
+  interests: [],
+};
 
 /**
  * Placing a pin, now that signing in happens before the map is ever shown.
@@ -59,6 +67,7 @@ export function useAddPin(map: MapLibreMap | null, onPlanted: () => void) {
       lng: point.lng,
       lat: point.lat,
       precision: details.precision,
+      interests: details.interests,
     });
   }, [details, placement.position, placement.centre, planting]);
 
@@ -68,6 +77,15 @@ export function useAddPin(map: MapLibreMap | null, onPlanted: () => void) {
     busy: planting.busy || placement.locating,
     error: planting.error ?? placement.locateError,
     patchDetails: (patch: Partial<Details>) => setDetails((current) => ({ ...current, ...patch })),
+    toInterests: () => setStep("interests"),
+    backToDetails: () => setStep("describing"),
+    toggleInterest: (id: InterestId) =>
+      setDetails((current) => ({
+        ...current,
+        interests: current.interests.includes(id)
+          ? current.interests.filter((kept) => kept !== id)
+          : [...current.interests, id],
+      })),
     open: () => setStep("placing"),
     close: () => setStep("closed"),
     back: () => setStep("placing"),

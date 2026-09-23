@@ -6,12 +6,14 @@ import type { AnchorPlace } from "@/lib/pins/repository";
 import { useContact } from "@/lib/pins/useContact";
 import { useEnsureContact } from "@/lib/pins/useEnsureContact";
 import { usePinDetail } from "@/lib/pins/usePinDetail";
+import type { InterestId } from "@/lib/interests";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 import { GatheringFlow } from "@/components/gatherings/GatheringFlow";
 import { useGatheringSource } from "@/components/gatherings/useGatheringSource";
 import { PinControls } from "@/components/mine/PinControls";
 import { useGatherings } from "@/lib/gatherings/useGatherings";
 import { KeyboardPins } from "./KeyboardPins";
+import { InterestFilter } from "./InterestFilter";
 import { MapHeader } from "./MapHeader";
 import { PinCard } from "./PinCard";
 import { SELECTED_LAYER_ID, selectionFilter } from "./pin-layers";
@@ -24,7 +26,8 @@ import { useVisiblePins } from "./useVisiblePins";
 export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
   const container = useRef<HTMLDivElement>(null);
   const map = useMapInstance(container);
-  const { count, error, layersReady, refresh } = usePinSource(map, anchors);
+  const [interests, setInterests] = useState<InterestId[]>([]);
+  const { count, error, layersReady, refresh } = usePinSource(map, anchors, interests);
   const [selected, setSelected] = useState<number | null>(null);
   const { state, prefetch } = usePinDetail(selected);
   const contact = useContact(selected);
@@ -54,7 +57,18 @@ export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
   return (
     <div className="absolute inset-0 bg-bg-page">
       <div ref={container} className="h-full w-full" />
-      <MapHeader count={count} visible={visible} error={error} ready={layersReady} />
+      <MapHeader count={count} visible={visible} error={error} ready={layersReady}>
+        <InterestFilter
+          selected={interests}
+          onToggle={(id) =>
+            setInterests((current) =>
+              current.includes(id) ? current.filter((kept) => kept !== id) : [...current, id],
+            )
+          }
+          onClear={() => setInterests([])}
+          onOpen={dismiss}
+        />
+      </MapHeader>
       <KeyboardPins map={map} layersReady={layersReady} onSelect={setSelected} />
       <PinCard detail={state} contact={contact} onClose={dismiss} />
       <PinControls map={map} onChanged={refresh} onOpen={dismiss} />

@@ -28,6 +28,7 @@ function toValues(pin: OwnPin): EditValues {
     note: pin.note ?? "",
     instagram: pin.instagram ?? "",
     website: pin.website ?? "",
+    interests: pin.interests,
   };
 }
 
@@ -76,6 +77,7 @@ export function MyPin({ pin, map, controls, onClose }: Props) {
         lng: pin.lng,
         lat: pin.lat,
         precision: pin.precision,
+        interests: values.interests,
       });
       await controls.saveHandles({
         instagram: trimmed(values.instagram),
@@ -94,6 +96,7 @@ export function MyPin({ pin, map, controls, onClose }: Props) {
         lng: center.lng,
         lat: center.lat,
         precision: pin.precision,
+        interests: pin.interests,
       });
     }, () => setScreen("summary"));
 

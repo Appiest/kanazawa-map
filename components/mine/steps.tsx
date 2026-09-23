@@ -3,6 +3,8 @@
 import { TrashSimpleIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
+import { TagPicker } from "@/components/ui/TagPicker";
+import type { InterestId } from "@/lib/interests";
 import type { OwnPin } from "@/lib/pins/repository";
 
 const QUIET_LINK = "text-text-secondary underline decoration-paper-400 underline-offset-2";
@@ -58,32 +60,18 @@ export type EditValues = {
   note: string;
   instagram: string;
   website: string;
+  interests: InterestId[];
 };
 
-export function EditStep({
+function EditFields({
   values,
   onChange,
-  onSave,
-  onCancel,
-  saving,
-  error,
 }: {
   values: EditValues;
   onChange: (patch: Partial<EditValues>) => void;
-  onSave: () => void;
-  onCancel: () => void;
-  saving: boolean;
-  error: string | null;
 }) {
   return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault();
-        onSave();
-      }}
-    >
-      <h2 className="text-xl font-semibold text-text-primary">Edit your details</h2>
-      <div className="mt-4 max-h-[50vh] space-y-3 overflow-y-auto pr-1">
+    <>
         <Field
           label="Name"
           value={values.displayName}
@@ -113,6 +101,17 @@ export function EditStep({
           hint="Optional. Shown to people who are on the map."
           maxLength={30}
         />
+        <TagPicker
+          legend="What you are into"
+          selected={values.interests}
+          onToggle={(id) =>
+            onChange({
+              interests: values.interests.includes(id)
+                ? values.interests.filter((kept) => kept !== id)
+                : [...values.interests, id],
+            })
+          }
+        />
         <Field
           label="Website"
           value={values.website}
@@ -122,6 +121,35 @@ export function EditStep({
           inputMode="url"
           maxLength={200}
         />
+    </>
+  );
+}
+
+export function EditStep({
+  values,
+  onChange,
+  onSave,
+  onCancel,
+  saving,
+  error,
+}: {
+  values: EditValues;
+  onChange: (patch: Partial<EditValues>) => void;
+  onSave: () => void;
+  onCancel: () => void;
+  saving: boolean;
+  error: string | null;
+}) {
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSave();
+      }}
+    >
+      <h2 className="text-xl font-semibold text-text-primary">Edit your details</h2>
+      <div className="mt-4 max-h-[50vh] space-y-3 overflow-y-auto pr-1">
+        <EditFields values={values} onChange={onChange} />
       </div>
       {error ? (
         <p role="alert" className="mt-3 text-sm text-clay-700">

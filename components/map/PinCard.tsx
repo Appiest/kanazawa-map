@@ -5,6 +5,7 @@ import { EnvelopeSimpleIcon, InstagramLogoIcon, LinkSimpleIcon, LockSimpleIcon, 
 import { Button } from "@/components/ui/Button";
 import { Panel, TagHole } from "@/components/ui/Panel";
 import type { PinContact, PinDetail } from "@/lib/pins/repository";
+import { labelFor } from "@/lib/interests";
 import { ReportPin } from "./ReportPin";
 import { safeUrl } from "@/lib/safeUrl";
 
@@ -99,6 +100,18 @@ function CardBody({ detail, contact }: { detail: DetailState; contact: ContactSt
         <p className="mt-3 border-t border-separator pt-3 text-[0.9375rem] leading-relaxed text-text-body">
           {pin.note}
         </p>
+      ) : null}
+      {pin.interests.length > 0 ? (
+        <ul className="mt-3 flex flex-wrap gap-1.5">
+          {pin.interests.map((id) => (
+            <li
+              key={id}
+              className="rounded-full bg-bg-sunken px-2.5 py-1 text-sm text-text-body"
+            >
+              {labelFor(id)}
+            </li>
+          ))}
+        </ul>
       ) : null}
       <Contact state={contact} name={pin.displayName} />
       <ReportPin pin={pin} />

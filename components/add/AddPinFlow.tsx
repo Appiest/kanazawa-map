@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 import { PlacementGhost } from "./PlacementGhost";
-import { DescribeStep, DoneStep, PlacementStep } from "./steps";
+import { DescribeStep, DoneStep, InterestsStep, PlacementStep } from "./steps";
 import { useAddPin, type AddPinFlowState, type Step } from "./useAddPin";
 
 type OpenStep = Exclude<Step, "closed">;
@@ -16,6 +16,7 @@ type OpenStep = Exclude<Step, "closed">;
 const LABELS: Record<OpenStep, string> = {
   placing: "Choose where your tag goes",
   describing: "Describe yourself",
+  interests: "What you are into",
   done: "You are on the map",
 };
 
@@ -38,8 +39,18 @@ function stepViews(flow: AddPinFlowState): Record<OpenStep, ReactNode> {
         precision={flow.details.precision}
         onChange={flow.patchDetails}
         onBack={flow.back}
+        onSubmit={flow.toInterests}
+        submitLabel="Next"
+        saving={flow.busy}
+        error={flow.error}
+      />
+    ),
+    interests: (
+      <InterestsStep
+        selected={flow.details.interests}
+        onToggle={flow.toggleInterest}
+        onBack={flow.backToDetails}
         onSubmit={flow.submit}
-        submitLabel="Add me to the map"
         saving={flow.busy}
         error={flow.error}
       />

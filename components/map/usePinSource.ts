@@ -10,6 +10,11 @@ import { whenStyleReady } from "./useMapInstance";
 
 const EMPTY: GeoJSON.FeatureCollection<GeoJSON.Point> = { type: "FeatureCollection", features: [] };
 
+/** Filtering happens in the database, so the payload is the answer's size. */
+function pinsUrl(interests: string[]): string {
+  return interests.length === 0 ? "/api/pins" : `/api/pins?interests=${interests.join(",")}`;
+}
+
 function toAnchorCollection(places: AnchorPlace[]): GeoJSON.FeatureCollection<GeoJSON.Point> {
   return {
     type: "FeatureCollection",
@@ -45,7 +50,7 @@ function addSourcesAndLayers(map: MapLibreMap, anchors: AnchorPlace[]) {
  * MapLibre then clusters in its own worker, so neither decoding nor clustering
  * ever touches the main thread.
  */
-export function usePinSource(map: MapLibreMap | null, anchors: AnchorPlace[]) {
+export function usePinSource(map: MapLibreMap | null, anchors: AnchorPlace[], interests: string[] = []) {
   const [count, setCount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [layersReady, setLayersReady] = useState(false);
@@ -70,7 +75,7 @@ export function usePinSource(map: MapLibreMap | null, anchors: AnchorPlace[]) {
     whenStyleReady(map, () => {
       addSourcesAndLayers(map, anchors);
       setLayersReady(true);
-      worker.postMessage({ url: "/api/pins" });
+      worker.postMessage({ url: pinsUrl(interests) });
     });
 
     return () => {
@@ -78,12 +83,13 @@ export function usePinSource(map: MapLibreMap | null, anchors: AnchorPlace[]) {
       workerRef.current = null;
       setLayersReady(false);
     };
-  }, [map, anchors]);
+  }, [map, anchors, interests]);
 
   /** Re-reads the payload so a pin planted just now shows up straight away. */
   const refresh = useCallback(() => {
-    workerRef.current?.postMessage({ url: `/api/pins?at=${Date.now()}` });
-  }, []);
+    const url = pinsUrl(interests);
+    workerRef.current?.postMessage({ url: `${url}${url.includes("?") ? "&" : "?"}at=${Date.now()}` });
+  }, [interests]);
 
   return { count, error, layersReady, refresh };
 }
