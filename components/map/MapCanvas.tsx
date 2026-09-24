@@ -6,11 +6,12 @@ import type { AnchorPlace } from "@/lib/pins/repository";
 import { useContact } from "@/lib/pins/useContact";
 import { useEnsureContact } from "@/lib/pins/useEnsureContact";
 import { usePinDetail } from "@/lib/pins/usePinDetail";
-import type { InterestId } from "@/lib/interests";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 import { GatheringFlow } from "@/components/gatherings/GatheringFlow";
 import { useGatheringSource } from "@/components/gatherings/useGatheringSource";
+import { MyPin } from "@/components/mine/MyPin";
 import { PinControls } from "@/components/mine/PinControls";
+import { useMyPin } from "@/lib/pins/useMyPin";
 import { useGatherings } from "@/lib/gatherings/useGatherings";
 import { KeyboardPins } from "./KeyboardPins";
 import { InterestFilterButton, InterestFilterPanel } from "./InterestFilter";
@@ -21,14 +22,15 @@ import { useMapInstance } from "./useMapInstance";
 import { usePinInteractions } from "./usePinInteractions";
 import { useOrientToViewer } from "./useOrientToViewer";
 import { usePinSource } from "./usePinSource";
+import { useInterestFilter } from "./useInterestFilter";
 import { useVisiblePins } from "./useVisiblePins";
 
 export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
   const container = useRef<HTMLDivElement>(null);
   const map = useMapInstance(container);
-  const [interests, setInterests] = useState<InterestId[]>([]);
-  const [filterOpen, setFilterOpen] = useState(false);
-  const { count, error, layersReady, refresh } = usePinSource(map, anchors, interests);
+  const filter = useInterestFilter();
+  const [managing, setManaging] = useState(false);
+  const { count, error, layersReady, refresh } = usePinSource(map, anchors, filter.selected);
   const [selected, setSelected] = useState<number | null>(null);
   const { state, prefetch } = usePinDetail(selected);
   const contact = useContact(selected);
@@ -38,10 +40,27 @@ export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
   const { gatherings, post } = useGatherings();
   useGatheringSource(map, gatherings);
 
+  const mine = useMyPin(refresh);
+  const mySeq = mine.state.status === "mine" ? mine.state.pin.seq : null;
+
   const dismiss = useCallback(() => setSelected(null), []);
 
+  // Clicking your own tag manages it. Showing somebody a read-only card of
+  // themselves, with a locked contact row and a report link, would be absurd.
+  const openPin = useCallback(
+    (seq: number) => {
+      if (seq === mySeq) {
+        setSelected(null);
+        setManaging(true);
+        return;
+      }
+      setSelected(seq);
+    },
+    [mySeq],
+  );
+
   usePinInteractions(map, layersReady, {
-    onSelect: setSelected,
+    onSelect: openPin,
     onPrefetch: prefetch,
     onDismiss: dismiss,
   });
@@ -60,29 +79,39 @@ export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
       <div ref={container} className="h-full w-full" />
       <MapHeader count={count} visible={visible} error={error} ready={layersReady}>
         <InterestFilterButton
-          selected={interests}
-          onClear={() => setInterests([])}
+          selected={filter.selected}
+          onClear={filter.clear}
           onOpen={() => {
             dismiss();
-            setFilterOpen(true);
+            filter.setOpen(true);
           }}
         />
       </MapHeader>
-      {filterOpen ? (
+      {filter.open ? (
         <InterestFilterPanel
-          selected={interests}
-          onToggle={(id) =>
-            setInterests((current) =>
-              current.includes(id) ? current.filter((kept) => kept !== id) : [...current, id],
-            )
-          }
-          onClear={() => setInterests([])}
-          onClose={() => setFilterOpen(false)}
+          selected={filter.selected}
+          onToggle={filter.toggle}
+          onClear={filter.clear}
+          onClose={() => filter.setOpen(false)}
         />
       ) : null}
-      <KeyboardPins map={map} layersReady={layersReady} onSelect={setSelected} />
+      <KeyboardPins map={map} layersReady={layersReady} onSelect={openPin} />
       <PinCard detail={state} contact={contact} onClose={dismiss} />
-      <PinControls map={map} onChanged={refresh} onOpen={dismiss} />
+      <PinControls
+        map={map}
+        controls={mine}
+        onChanged={refresh}
+        onManage={() => setManaging(true)}
+        onOpen={dismiss}
+      />
+      {managing && mine.state.status === "mine" ? (
+        <MyPin
+          pin={mine.state.pin}
+          map={map}
+          controls={mine}
+          onClose={() => setManaging(false)}
+        />
+      ) : null}
       <GatheringFlow map={map} onPost={post} onOpen={dismiss} />
     </div>
   );

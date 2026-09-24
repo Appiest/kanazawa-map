@@ -1,29 +1,28 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { MapPinIcon } from "@phosphor-icons/react";
 import { AddPinFlow } from "@/components/add/AddPinFlow";
 import { Button } from "@/components/ui/Button";
-import { useMyPin } from "@/lib/pins/useMyPin";
-import { MyPin } from "./MyPin";
+import type { useMyPin } from "@/lib/pins/useMyPin";
 
 const CORNER = "pointer-events-auto absolute right-4 bottom-4 z-10 sm:right-6 sm:bottom-6";
 
 type Props = {
   map: MapLibreMap | null;
+  controls: ReturnType<typeof useMyPin>;
   onChanged: () => void;
+  onManage: () => void;
   onOpen: () => void;
 };
 
 /**
- * One control in the corner. Someone who is already on the map manages the pin
- * they have; everyone else is offered one.
+ * The control in the corner. Someone already on the map is offered their own
+ * pin; everyone else is offered one. The panel itself belongs to the map,
+ * which also opens it when somebody clicks their own tag.
  */
-export function PinControls({ map, onChanged, onOpen }: Props) {
-  const controls = useMyPin(onChanged);
-  const [managing, setManaging] = useState(false);
-
+export function PinControls({ map, controls, onChanged, onManage, onOpen }: Props) {
   const afterPlanting = useCallback(() => {
     onChanged();
     controls.reload();
@@ -35,28 +34,17 @@ export function PinControls({ map, onChanged, onOpen }: Props) {
     return <AddPinFlow map={map} onPlanted={afterPlanting} onOpen={onOpen} />;
   }
 
-  if (!managing) {
-    return (
-      <div className={CORNER} data-touch-target>
-        <Button
-          onClick={() => {
-            onOpen();
-            setManaging(true);
-          }}
-        >
-          <MapPinIcon size={16} weight="fill" aria-hidden />
-          Your pin
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <MyPin
-      pin={controls.state.pin}
-      map={map}
-      controls={controls}
-      onClose={() => setManaging(false)}
-    />
+    <div className={CORNER} data-touch-target>
+      <Button
+        onClick={() => {
+          onOpen();
+          onManage();
+        }}
+      >
+        <MapPinIcon size={16} weight="fill" aria-hidden />
+        Your pin
+      </Button>
+    </div>
   );
 }
