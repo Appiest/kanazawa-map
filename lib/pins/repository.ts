@@ -200,7 +200,7 @@ export async function createPin(input: NewPin, accessToken: string | null): Prom
         note: input.note,
         lng: input.lng,
         lat: input.lat,
-        precision: input.precision,
+        location_precision: input.precision,
         interests: keepKnown(input.interests),
       },
       { onConflict: "owner_id" },
@@ -290,7 +290,7 @@ type OwnPinRow = {
   note: string | null;
   lng: number;
   lat: number;
-  precision: Precision;
+  location_precision: Precision;
   interests: string[] | null;
   pin_contacts: { instagram: string | null; website: string | null } | null;
 };
@@ -302,7 +302,7 @@ export async function findOwnPin(accessToken: string): Promise<OwnPin | null> {
 
   const { data } = await supabase
     .from("pins")
-    .select("seq, display_name, neighborhood, note, lng, lat, precision, interests, pin_contacts (instagram, website)")
+    .select("seq, display_name, neighborhood, note, lng, lat, location_precision, interests, pin_contacts (instagram, website)")
     .eq("owner_id", owner.id)
     .maybeSingle<OwnPinRow>();
 
@@ -314,7 +314,7 @@ export async function findOwnPin(accessToken: string): Promise<OwnPin | null> {
     note: data.note,
     lng: data.lng,
     lat: data.lat,
-    precision: data.precision,
+    precision: data.location_precision,
     interests: keepKnown(data.interests ?? []),
     instagram: data.pin_contacts?.instagram ?? null,
     website: data.pin_contacts?.website ?? null,

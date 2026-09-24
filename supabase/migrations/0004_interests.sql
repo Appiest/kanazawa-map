@@ -5,8 +5,10 @@
 -- ever read whole, and Postgres can index and filter it directly. The values
 -- come from a fixed vocabulary in lib/interests.ts, so filtering works and
 -- there is no free text to moderate.
+--
+-- Safe to run more than once.
 alter table public.pins
-add column interests text[] not null default '{}';
+add column if not exists interests text[] not null default '{}';
 
 -- Answers "which pins include any of these", which is the only query asked.
-create index pins_interests_idx on public.pins using gin (interests);
+create index if not exists pins_interests_idx on public.pins using gin (interests);
