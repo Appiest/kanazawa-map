@@ -7,18 +7,21 @@ type State =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "ready"; pin: PinDetail }
-  | { status: "error" };
+  | { status: "error"; message: string };
 
 /** A pin's details do not change while you look at it, so results are kept. */
 const cache = new Map<number, PinDetail>();
-const failed = new Set<number>();
+const failed = new Map<number, string>();
 
 async function loadDetail(seq: number): Promise<PinDetail> {
   const cached = cache.get(seq);
   if (cached) return cached;
 
   const response = await fetch(`/api/pins/${seq}`);
-  if (!response.ok) throw new Error(`Pin ${seq} returned ${response.status}`);
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.error ?? `Pin ${seq} returned ${response.status}`);
+  }
 
   const pin = (await response.json()) as PinDetail;
   cache.set(seq, pin);
@@ -29,7 +32,8 @@ function readState(seq: number | null): State {
   if (seq === null) return { status: "idle" };
   const pin = cache.get(seq);
   if (pin) return { status: "ready", pin };
-  if (failed.has(seq)) return { status: "error" };
+  const why = failed.get(seq);
+  if (why) return { status: "error", message: why };
   return { status: "loading" };
 }
 
@@ -55,8 +59,8 @@ export function usePinDetail(seq: number | null) {
     let current = true;
     loadDetail(seq).then(
       () => current && settle(),
-      () => {
-        failed.add(seq);
+      (cause: unknown) => {
+        failed.set(seq, cause instanceof Error ? cause.message : "Could not load that pin");
         if (current) settle();
       },
     );

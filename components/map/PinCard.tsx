@@ -13,7 +13,7 @@ type DetailState =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "ready"; pin: PinDetail }
-  | { status: "error" };
+  | { status: "error"; message: string };
 
 type ContactState =
   | { status: "hidden" }
@@ -86,7 +86,15 @@ function CardBody({ detail, contact }: { detail: DetailState; contact: ContactSt
   }
 
   if (detail.status === "error") {
-    return <p className="text-sm text-text-secondary">That pin would not load. Check your connection and try again.</p>;
+    return (
+      <>
+        <p className="text-[0.9375rem] text-text-body">That pin would not load.</p>
+        {/* The real reason, rather than a guess at it. Blaming the connection
+            when the connection is fine sends people hunting in the wrong
+            place. */}
+        <p className="mt-1 text-sm text-text-secondary">{detail.message}</p>
+      </>
+    );
   }
 
   if (detail.status !== "ready") return null;
