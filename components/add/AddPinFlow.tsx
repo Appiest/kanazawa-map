@@ -35,7 +35,6 @@ function stepViews(flow: AddPinFlowState): Record<OpenStep, ReactNode> {
       <DescribeStep
         displayName={flow.details.displayName}
         neighborhood={flow.details.neighborhood}
-        note={flow.details.note}
         precision={flow.details.precision}
         onChange={flow.patchDetails}
         onBack={flow.back}
@@ -48,7 +47,9 @@ function stepViews(flow: AddPinFlowState): Record<OpenStep, ReactNode> {
     interests: (
       <InterestsStep
         selected={flow.details.interests}
+        note={flow.details.note}
         onToggle={flow.toggleInterest}
+        onNoteChange={(value) => flow.patchDetails({ note: value })}
         onBack={flow.backToDetails}
         onSubmit={flow.submit}
         saving={flow.busy}

@@ -63,7 +63,6 @@ function precisionOptions(neighborhood: string): readonly Option<Precision>[] {
 type DescribeValues = {
   displayName: string;
   neighborhood: string;
-  note: string;
   precision: Precision;
   onChange: (patch: {
     displayName?: string;
@@ -73,7 +72,7 @@ type DescribeValues = {
   }) => void;
 };
 
-function DescribeFields({ displayName, neighborhood, note, precision, onChange }: DescribeValues) {
+function DescribeFields({ displayName, neighborhood, precision, onChange }: DescribeValues) {
   return (
     <>
       <Field
@@ -94,15 +93,6 @@ function DescribeFields({ displayName, neighborhood, note, precision, onChange }
         required
         maxLength={60}
       />
-      <Field
-        label="A line about you"
-        value={note}
-        onChange={(value) => onChange({ note: value })}
-        placeholder="Looking for a taiko group that takes beginners."
-        hint="Optional. What you are into, or what you are looking for."
-        maxLength={180}
-        multiline
-      />
       <Choice
         legend="Where your tag sits"
         value={precision}
@@ -116,7 +106,6 @@ function DescribeFields({ displayName, neighborhood, note, precision, onChange }
 export function DescribeStep({
   displayName,
   neighborhood,
-  note,
   precision,
   onChange,
   onBack,
@@ -127,7 +116,6 @@ export function DescribeStep({
 }: {
   displayName: string;
   neighborhood: string;
-  note: string;
   precision: Precision;
   onChange: (patch: {
     displayName?: string;
@@ -153,7 +141,6 @@ export function DescribeStep({
         <DescribeFields
           displayName={displayName}
           neighborhood={neighborhood}
-          note={note}
           precision={precision}
           onChange={onChange}
         />
@@ -179,14 +166,18 @@ export function DescribeStep({
 
 export function InterestsStep({
   selected,
+  note,
   onToggle,
+  onNoteChange,
   onBack,
   onSubmit,
   saving,
   error,
 }: {
   selected: readonly string[];
+  note: string;
   onToggle: (id: InterestId) => void;
+  onNoteChange: (value: string) => void;
   onBack: () => void;
   onSubmit: () => void;
   saving: boolean;
@@ -207,8 +198,19 @@ export function InterestsStep({
       <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-text-body">
         Pick whatever you would happily talk about. People can filter the map by these to find you.
       </p>
-      <div className="mt-4 max-h-[42vh] overflow-y-auto pr-1">
+      <div className="mt-4 max-h-[42vh] space-y-4 overflow-y-auto pr-1">
         <TagPicker legend="Your interests" selected={selected} onToggle={onToggle} />
+        {/* After the tags, so nobody writes out something the tags already
+            say and only then finds out they were there. */}
+        <Field
+          label="Anything the tags do not cover"
+          value={note}
+          onChange={onNoteChange}
+          placeholder="Second gen, still working on my Japanese. Happy to practice with anyone."
+          hint="Optional. This shows on your pin."
+          maxLength={180}
+          multiline
+        />
       </div>
       {error ? (
         <p role="alert" className="mt-3 text-sm text-clay-700">

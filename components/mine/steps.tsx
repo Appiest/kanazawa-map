@@ -72,55 +72,56 @@ function EditFields({
 }) {
   return (
     <>
-        <Field
-          label="Name"
-          value={values.displayName}
-          onChange={(v) => onChange({ displayName: v })}
-          required
-          maxLength={40}
-        />
-        <Field
-          label="Neighborhood"
-          value={values.neighborhood}
-          onChange={(v) => onChange({ neighborhood: v })}
-          required
-          maxLength={60}
-        />
-        <Field
-          label="A line about you"
-          value={values.note}
-          onChange={(v) => onChange({ note: v })}
-          maxLength={180}
-          multiline
-        />
-        <Field
-          label="Instagram"
-          value={values.instagram}
-          onChange={(v) => onChange({ instagram: v })}
-          placeholder="yourhandle"
-          hint="Optional. Shown to people who are on the map."
-          maxLength={30}
-        />
-        <TagPicker
-          legend="What you are into"
-          selected={values.interests}
-          onToggle={(id) =>
-            onChange({
-              interests: values.interests.includes(id)
-                ? values.interests.filter((kept) => kept !== id)
-                : [...values.interests, id],
-            })
-          }
-        />
-        <Field
-          label="Website"
-          value={values.website}
-          onChange={(v) => onChange({ website: v })}
-          placeholder="example.com"
-          type="url"
-          inputMode="url"
-          maxLength={200}
-        />
+      <Field
+        label="Name"
+        value={values.displayName}
+        onChange={(v) => onChange({ displayName: v })}
+        required
+        maxLength={40}
+      />
+      <Field
+        label="Neighborhood"
+        value={values.neighborhood}
+        onChange={(v) => onChange({ neighborhood: v })}
+        required
+        maxLength={60}
+      />
+      <TagPicker
+        legend="What you are into"
+        selected={values.interests}
+        onToggle={(id) =>
+          onChange({
+            interests: values.interests.includes(id)
+              ? values.interests.filter((kept) => kept !== id)
+              : [...values.interests, id],
+          })
+        }
+      />
+      {/* After the tags, so nobody writes out what the tags already say. */}
+      <Field
+        label="Anything the tags do not cover"
+        value={values.note}
+        onChange={(v) => onChange({ note: v })}
+        maxLength={180}
+        multiline
+      />
+      <Field
+        label="Instagram"
+        value={values.instagram}
+        onChange={(v) => onChange({ instagram: v })}
+        placeholder="yourhandle"
+        hint="Optional. Shown to people who are on the map."
+        maxLength={30}
+      />
+      <Field
+        label="Website"
+        value={values.website}
+        onChange={(v) => onChange({ website: v })}
+        placeholder="example.com"
+        type="url"
+        inputMode="url"
+        maxLength={200}
+      />
     </>
   );
 }
