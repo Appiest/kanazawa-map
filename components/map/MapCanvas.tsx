@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
+import type { Map as MapLibreMap } from "maplibre-gl";
 import type { AnchorPlace } from "@/lib/pins/repository";
 import { useContact } from "@/lib/pins/useContact";
 import { useEnsureContact } from "@/lib/pins/useEnsureContact";
@@ -23,9 +24,21 @@ import { usePinInteractions } from "./usePinInteractions";
 import { useOrientToViewer } from "./useOrientToViewer";
 import { usePinSource } from "./usePinSource";
 import { useInterestFilter } from "./useInterestFilter";
+import { useMarkerVisibility, type Shown } from "./useMarkerVisibility";
 import { useVisiblePins } from "./useVisiblePins";
 
-export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
+/**
+ * The open pin is marked by swapping one layer's filter, which is cheaper than
+ * re-sending the source data.
+ */
+function useSelectionLayer(map: MapLibreMap | null, layersReady: boolean, selected: number | null) {
+  useEffect(() => {
+    if (!map || !layersReady) return;
+    map.setFilter(SELECTED_LAYER_ID, selectionFilter(selected));
+  }, [map, layersReady, selected]);
+}
+
+export default function MapCanvas({ anchors, shown }: { anchors: AnchorPlace[]; shown: Shown }) {
   const container = useRef<HTMLDivElement>(null);
   const map = useMapInstance(container);
   const filter = useInterestFilter();
@@ -39,6 +52,7 @@ export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
   const visible = useVisiblePins(map, layersReady);
   const { gatherings, post } = useGatherings();
   useGatheringSource(map, gatherings);
+  useMarkerVisibility(map, shown, (layersReady ? 1 : 0) + gatherings.length);
 
   const mine = useMyPin(refresh);
   const mySeq = mine.state.status === "mine" ? mine.state.pin.seq : null;
@@ -65,19 +79,13 @@ export default function MapCanvas({ anchors }: { anchors: AnchorPlace[] }) {
     onDismiss: dismiss,
   });
 
-  // The open pin is marked by swapping one layer's filter, which is cheaper
-  // than re-sending the source data.
-  useEffect(() => {
-    if (!map || !layersReady) return;
-    map.setFilter(SELECTED_LAYER_ID, selectionFilter(selected));
-  }, [map, layersReady, selected]);
-
+  useSelectionLayer(map, layersReady, selected);
   useEscapeKey(selected !== null, dismiss);
 
   return (
     <div className="absolute inset-0 bg-bg-page">
       <div ref={container} className="h-full w-full" />
-      <MapHeader count={count} visible={visible} error={error} ready={layersReady}>
+      <MapHeader count={count} visible={shown.people ? visible : null} error={error} ready={layersReady}>
         <InterestFilterButton
           selected={filter.selected}
           onClear={filter.clear}

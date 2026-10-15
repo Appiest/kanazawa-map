@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo } from "next/font/google";
 import { APP_NAME } from "@/lib/config";
+import { SITE } from "@/lib/content";
+import { hexOf } from "@/styles/palette";
 import "./theme.css";
 
 const archivo = Archivo({
@@ -12,17 +14,17 @@ const archivo = Archivo({
 
 export const metadata: Metadata = {
   title: APP_NAME,
-  description: "Find Asian Americans near you, and let them find you.",
+  description: SITE.tagline,
   openGraph: {
     title: APP_NAME,
-    description: "Find Asian Americans near you, and let them find you.",
+    description: SITE.tagline,
     type: "website",
   },
   twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f3f1ed",
+  themeColor: hexOf("brand", 900),
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,

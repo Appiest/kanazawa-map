@@ -1,3 +1,5 @@
+import { vocabulary } from "./vocabulary";
+
 /**
  * What people can say they are into.
  *
@@ -26,18 +28,11 @@ export const INTERESTS = [
 
 export type InterestId = (typeof INTERESTS)[number]["id"];
 
-const BY_ID = new Map(INTERESTS.map((interest) => [interest.id, interest.label]));
+const interests = vocabulary<InterestId>(INTERESTS);
 
-export const INTEREST_IDS = INTERESTS.map((interest) => interest.id);
-
-/** Anything not in the vocabulary is dropped rather than stored and shown. */
-export function keepKnown(ids: readonly string[]): InterestId[] {
-  return ids.filter((id): id is InterestId => BY_ID.has(id as InterestId));
-}
-
-export function labelFor(id: string): string {
-  return BY_ID.get(id as InterestId) ?? id;
-}
+export const INTEREST_IDS = interests.ids;
+export const keepKnown = interests.keepKnown;
+export const labelFor = interests.labelFor;
 
 /** How many someone has to pick before they can carry on. */
 export const MIN_INTERESTS = 1;

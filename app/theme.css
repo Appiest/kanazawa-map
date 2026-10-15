@@ -4,6 +4,16 @@
 /* Semantic tokens. The only tier a component may reference.
    Primitives live in styles/palette.ts and are generated into tokens.generated.css. */
 @theme {
+  /* Brand. The colors a re-skin changes, and the only place they are set.
+     The frame is the host site's color, so the map always reads as part of it.
+     Ramps, including the brand hue and the marker colors, live in
+     styles/palette.ts; run `npm run tokens` after changing one. */
+  --color-frame: var(--color-brand-900);
+  --color-frame-text: var(--color-paper-50);
+  --color-frame-text-muted: color-mix(in oklab, var(--color-frame-text) 70%, var(--color-frame));
+  --color-frame-raised: color-mix(in oklab, var(--color-frame-text) 14%, var(--color-frame));
+  --color-bg-landing: var(--color-land-100);
+
   --color-bg-page: var(--color-paper-100);
   --color-bg-surface: var(--color-paper-50);
   --color-bg-sunken: var(--color-paper-200);

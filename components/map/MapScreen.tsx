@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { SiteFrame } from "@/components/ui/SiteFrame";
 import MapCanvas from "./MapCanvas";
+import { MarkerLegend } from "./MarkerLegend";
+import type { MarkerGroup } from "./pin-layers";
+import { SHOW_EVERYTHING, type Shown } from "./useMarkerVisibility";
 import type { AnchorPlace } from "@/lib/pins/repository";
 import { APP_NAME } from "@/lib/config";
 import { useSession } from "@/lib/supabase/useSession";
@@ -16,6 +20,11 @@ import { useSession } from "@/lib/supabase/useSession";
 export function MapScreen({ anchors }: { anchors: AnchorPlace[] }) {
   const session = useSession();
   const router = useRouter();
+  const [shown, setShown] = useState<Shown>(SHOW_EVERYTHING);
+  const toggle = useCallback(
+    (group: MarkerGroup) => setShown((current) => ({ ...current, [group]: !current[group] })),
+    [],
+  );
 
   useEffect(() => {
     if (session.status === "out") router.replace("/");
@@ -23,17 +32,21 @@ export function MapScreen({ anchors }: { anchors: AnchorPlace[] }) {
 
   if (session.status !== "in") {
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-land-100 px-6">
-        <p role="status" className="text-sm text-text-secondary">
-          {session.status === "checking" ? `Opening ${APP_NAME}` : "Taking you back to sign in"}
-        </p>
-      </main>
+      <SiteFrame fit="screen">
+        <main className="flex h-full items-center justify-center px-6">
+          <p role="status" className="text-sm text-text-secondary">
+            {session.status === "checking" ? `Opening ${APP_NAME}` : "Taking you back to sign in"}
+          </p>
+        </main>
+      </SiteFrame>
     );
   }
 
   return (
-    <main className="relative h-dvh w-full overflow-hidden">
-      <MapCanvas anchors={anchors} />
-    </main>
+    <SiteFrame fit="screen" footer={<MarkerLegend shown={shown} onToggle={toggle} />}>
+      <main className="relative h-full w-full overflow-hidden">
+        <MapCanvas anchors={anchors} shown={shown} />
+      </main>
+    </SiteFrame>
   );
 }

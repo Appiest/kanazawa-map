@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 import { PlacementGhost } from "./PlacementGhost";
-import { DescribeStep, DoneStep, InterestsStep, PlacementStep } from "./steps";
+import { ConnectionStep, DescribeStep, DoneStep, InterestsStep, PlacementStep } from "./steps";
 import { useAddPin, type AddPinFlowState, type Step } from "./useAddPin";
 
 type OpenStep = Exclude<Step, "closed">;
 
 const LABELS: Record<OpenStep, string> = {
   placing: "Choose where your tag goes",
+  connecting: "How you are connected to Japan",
   describing: "Describe yourself",
   interests: "What you are into",
   done: "You are on the map",
@@ -31,15 +32,24 @@ function stepViews(flow: AddPinFlowState): Record<OpenStep, ReactNode> {
         locating={flow.busy}
       />
     ),
+    connecting: (
+      <ConnectionStep
+        selected={flow.details.connections}
+        onToggle={flow.toggleConnection}
+        onBack={() => flow.goTo("placing")}
+        onNext={() => flow.goTo("describing")}
+      />
+    ),
     describing: (
       <DescribeStep
         displayName={flow.details.displayName}
         neighborhood={flow.details.neighborhood}
         precision={flow.details.precision}
+        surroundings={flow.surroundings}
         onChange={flow.patchDetails}
-        onBack={flow.back}
-        onSubmit={flow.toInterests}
-        submitLabel="Next"
+        onChoosePrecision={flow.choosePrecision}
+        onBack={() => flow.goTo("connecting")}
+        onSubmit={() => flow.goTo("interests")}
         saving={flow.busy}
         error={flow.error}
       />
@@ -50,7 +60,7 @@ function stepViews(flow: AddPinFlowState): Record<OpenStep, ReactNode> {
         note={flow.details.note}
         onToggle={flow.toggleInterest}
         onNoteChange={(value) => flow.patchDetails({ note: value })}
-        onBack={flow.backToDetails}
+        onBack={() => flow.goTo("describing")}
         onSubmit={flow.submit}
         saving={flow.busy}
         error={flow.error}

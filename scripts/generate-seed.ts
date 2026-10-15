@@ -103,6 +103,19 @@ function pickInterests(): string[] {
   return picked;
 }
 
+const CONNECTION_IDS = ["born", "lived", "ancestry", "study-culture"];
+
+/**
+ * Drawn from a stream of its own, so adding connections did not move any of
+ * the people or names already in the seed.
+ */
+const connectionRandom = makeRandom(20261014);
+
+function pickConnections(): string[] {
+  const picked = CONNECTION_IDS.filter(() => connectionRandom() < 0.3);
+  return picked.length > 0 ? picked : [CONNECTION_IDS[Math.floor(connectionRandom() * CONNECTION_IDS.length)]];
+}
+
 const count = Number(process.argv[2] ?? 900);
 const pins = Array.from({ length: count }, (_, index) => {
   const metro = pickMetro();
@@ -114,6 +127,7 @@ const pins = Array.from({ length: count }, (_, index) => {
     interests: pickInterests(),
     lng: Number((metro.lng + gaussian() * metro.spread).toFixed(6)),
     lat: Number((metro.lat + gaussian() * metro.spread * 0.75).toFixed(6)),
+    connections: pickConnections(),
   };
 });
 

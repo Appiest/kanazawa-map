@@ -5,6 +5,7 @@ import { clientForToken, isSupabaseConfigured, readOnlyClient } from "@/lib/supa
 import type { PinPoint } from "./format";
 import { enforceRateLimit } from "./rateLimit";
 import { keepKnown, type InterestId } from "@/lib/interests";
+import { keepKnownConnections, type ConnectionId } from "@/lib/connections";
 
 export type PinDetail = {
   seq: number;
@@ -12,6 +13,7 @@ export type PinDetail = {
   neighborhood: string;
   note: string | null;
   interests: InterestId[];
+  connections: ConnectionId[];
 };
 
 export type AnchorPlace = {
@@ -22,29 +24,36 @@ export type AnchorPlace = {
   lat: number;
 };
 
-/** How truthfully a pin reports where somebody is. */
-export type Precision = "neighborhood" | "exact";
+/**
+ * Where a pin sits. A pin is always stored on the middle of an area, never on
+ * the spot somebody dropped it, so there is no way to publish a home address.
+ * `neighborhood` only survives on pins planted before city and region existed.
+ */
+export const PRECISIONS = ["city", "region", "neighborhood"] as const;
+export type Precision = (typeof PRECISIONS)[number];
+export type ChosenPrecision = Exclude<Precision, "neighborhood">;
 
 export type NewPin = {
   displayName: string;
   neighborhood: string;
   note: string | null;
   interests: InterestId[];
+  connections: ConnectionId[];
   /**
-   * Already reduced to what will be stored. A neighborhood pin carries the
-   * neighborhood's centre, so the precise spot never reaches the server at all
-   * and cannot leak from a table nobody meant to expose.
+   * Already reduced to the middle of the chosen city or region, so the spot
+   * somebody dropped their tag never reaches the server at all.
    */
   lng: number;
   lat: number;
   precision: Precision;
 };
 
-type StoredPin = Omit<PinDetail, "interests"> & {
+type StoredPin = Omit<PinDetail, "interests" | "connections"> & {
   lng: number;
   lat: number;
   precision?: Precision;
   interests?: string[];
+  connections?: string[];
 };
 
 const seed = seedPins as StoredPin[];
@@ -78,6 +87,27 @@ function toDetail(pin: StoredPin): PinDetail {
     neighborhood: pin.neighborhood,
     note: pin.note?.trim() ? pin.note : null,
     interests: keepKnown(pin.interests ?? []),
+    connections: keepKnownConnections(pin.connections ?? []),
+  };
+}
+
+type PinRow = {
+  seq: number;
+  display_name: string;
+  neighborhood: string;
+  note: string | null;
+  interests: string[] | null;
+  connections: string[] | null;
+};
+
+function fromRow(row: PinRow): PinDetail {
+  return {
+    seq: row.seq,
+    displayName: row.display_name,
+    neighborhood: row.neighborhood,
+    note: row.note,
+    interests: keepKnown(row.interests ?? []),
+    connections: keepKnownConnections(row.connections ?? []),
   };
 }
 
@@ -114,20 +144,12 @@ export async function findPinDetail(seq: number): Promise<PinDetail | null> {
 
   const { data, error } = await supabase
     .from("pins")
-    .select("seq, display_name, neighborhood, note, interests")
+    .select("seq, display_name, neighborhood, note, interests, connections")
     .eq("seq", seq)
     .maybeSingle();
 
   if (error) throw new Error(`Could not load pin ${seq}: ${error.message}`);
-  if (!data) return null;
-
-  return {
-    seq: data.seq,
-    displayName: data.display_name,
-    neighborhood: data.neighborhood,
-    note: data.note,
-    interests: keepKnown(data.interests ?? []),
-  };
+  return data ? fromRow(data) : null;
 }
 
 /** Several pins at once, for the keyboard layer's labels. */
@@ -140,17 +162,11 @@ export async function findPinDetails(seqs: number[]): Promise<PinDetail[]> {
 
   const { data, error } = await supabase
     .from("pins")
-    .select("seq, display_name, neighborhood, note, interests")
+    .select("seq, display_name, neighborhood, note, interests, connections")
     .in("seq", seqs);
 
   if (error) throw new Error(`Could not load pins: ${error.message}`);
-  return (data ?? []).map((row) => ({
-    seq: row.seq,
-    displayName: row.display_name,
-    neighborhood: row.neighborhood,
-    note: row.note,
-    interests: keepKnown(row.interests ?? []),
-  }));
+  return (data ?? []).map(fromRow);
 }
 
 function nextLocalSeq(): number {
@@ -202,10 +218,11 @@ export async function createPin(input: NewPin, accessToken: string | null): Prom
         lat: input.lat,
         location_precision: input.precision,
         interests: keepKnown(input.interests),
+        connections: keepKnownConnections(input.connections),
       },
       { onConflict: "owner_id" },
     )
-    .select("id, seq, display_name, neighborhood, note, interests")
+    .select("id, seq, display_name, neighborhood, note, interests, connections")
     .single();
 
   if (error) throw new Error(error.message);
@@ -216,13 +233,7 @@ export async function createPin(input: NewPin, accessToken: string | null): Prom
     .from("pin_contacts")
     .upsert({ pin_id: data.id, owner_id: ownerId, email: owner.email });
 
-  return {
-    seq: data.seq,
-    displayName: data.display_name,
-    neighborhood: data.neighborhood,
-    note: data.note,
-    interests: keepKnown(data.interests ?? []),
-  };
+  return fromRow(data);
 }
 
 export type PinContact = { email: string | null; instagram: string | null; website: string | null };
@@ -279,6 +290,7 @@ export type OwnPin = {
   lat: number;
   precision: Precision;
   interests: InterestId[];
+  connections: ConnectionId[];
   instagram: string | null;
   website: string | null;
 };
@@ -292,6 +304,7 @@ type OwnPinRow = {
   lat: number;
   location_precision: Precision;
   interests: string[] | null;
+  connections: string[] | null;
   pin_contacts: { instagram: string | null; website: string | null } | null;
 };
 
@@ -302,7 +315,7 @@ export async function findOwnPin(accessToken: string): Promise<OwnPin | null> {
 
   const { data } = await supabase
     .from("pins")
-    .select("seq, display_name, neighborhood, note, lng, lat, location_precision, interests, pin_contacts (instagram, website)")
+    .select("seq, display_name, neighborhood, note, lng, lat, location_precision, interests, connections, pin_contacts (instagram, website)")
     .eq("owner_id", owner.id)
     .maybeSingle<OwnPinRow>();
 
@@ -316,6 +329,7 @@ export async function findOwnPin(accessToken: string): Promise<OwnPin | null> {
     lat: data.lat,
     precision: data.location_precision,
     interests: keepKnown(data.interests ?? []),
+    connections: keepKnownConnections(data.connections ?? []),
     instagram: data.pin_contacts?.instagram ?? null,
     website: data.pin_contacts?.website ?? null,
   };

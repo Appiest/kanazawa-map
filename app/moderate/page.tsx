@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function ModeratePage() {
   return (
-    <main className="min-h-dvh bg-land-100 px-6 py-12">
+    <main className="min-h-dvh bg-bg-landing px-6 py-12">
       <div className="mx-auto max-w-2xl">
         <h1 className="text-2xl font-semibold text-text-primary">Reports</h1>
         <p className="mt-1 text-sm text-text-secondary">

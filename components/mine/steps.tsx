@@ -4,8 +4,11 @@ import { TrashSimpleIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { TagPicker } from "@/components/ui/TagPicker";
-import type { InterestId } from "@/lib/interests";
-import type { OwnPin } from "@/lib/pins/repository";
+import { CONNECTIONS, type ConnectionId } from "@/lib/connections";
+import { ConnectionLine } from "@/components/ui/ConnectionLine";
+import { INTERESTS, type InterestId } from "@/lib/interests";
+import type { ChosenPrecision, OwnPin } from "@/lib/pins/repository";
+import { toggled } from "@/lib/vocabulary";
 
 const QUIET_LINK = "text-text-secondary underline decoration-paper-400 underline-offset-2";
 
@@ -28,6 +31,7 @@ export function SummaryStep({
     <>
       <h2 className="text-2xl font-semibold text-text-primary">{pin.displayName}</h2>
       <p className="text-sm text-text-secondary">{pin.neighborhood}</p>
+      <ConnectionLine connections={pin.connections} />
       {pin.note ? (
         <p className="mt-3 border-t border-separator pt-3 text-[0.9375rem] leading-relaxed text-text-body">
           {pin.note}
@@ -61,6 +65,7 @@ export type EditValues = {
   instagram: string;
   website: string;
   interests: InterestId[];
+  connections: ConnectionId[];
 };
 
 function EditFields({
@@ -80,22 +85,23 @@ function EditFields({
         maxLength={40}
       />
       <Field
-        label="Neighborhood"
+        label="Place name on your pin"
         value={values.neighborhood}
         onChange={(v) => onChange({ neighborhood: v })}
         required
         maxLength={60}
       />
       <TagPicker
+        legend="How you are connected to Japan"
+        options={CONNECTIONS}
+        selected={values.connections}
+        onToggle={(id) => onChange({ connections: toggled(values.connections, id) })}
+      />
+      <TagPicker
         legend="What you are into"
+        options={INTERESTS}
         selected={values.interests}
-        onToggle={(id) =>
-          onChange({
-            interests: values.interests.includes(id)
-              ? values.interests.filter((kept) => kept !== id)
-              : [...values.interests, id],
-          })
-        }
+        onToggle={(id) => onChange({ interests: toggled(values.interests, id) })}
       />
       {/* After the tags, so nobody writes out what the tags already say. */}
       <Field
@@ -169,7 +175,22 @@ export function EditStep({
   );
 }
 
-export function MoveStep({ onConfirm, onCancel, saving }: { onConfirm: () => void; onCancel: () => void; saving: boolean }) {
+const MOVE_LANDS_ON: Record<ChosenPrecision, string> = {
+  city: "Your tag goes on the middle of whichever city you move it to.",
+  region: "Your tag goes on the middle of whichever region you move it to.",
+};
+
+export function MoveStep({
+  level,
+  onConfirm,
+  onCancel,
+  saving,
+}: {
+  level: ChosenPrecision;
+  onConfirm: () => void;
+  onCancel: () => void;
+  saving: boolean;
+}) {
   return (
     <>
       <h2 className="text-xl font-semibold text-text-primary">Move your tag</h2>
@@ -177,7 +198,7 @@ export function MoveStep({ onConfirm, onCancel, saving }: { onConfirm: () => voi
         Move the map until the tag sits where you want to be found.
       </p>
       <p className="mt-3 border-t border-separator pt-3 text-sm text-text-secondary">
-        Your tag keeps the precision it has now. Change that under Edit details.
+        {MOVE_LANDS_ON[level]}
       </p>
       <div className="mt-4 flex items-center gap-2">
         <Button onClick={onConfirm} disabled={saving}>

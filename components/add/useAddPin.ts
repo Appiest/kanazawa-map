@@ -2,37 +2,50 @@
 
 import { useCallback, useState } from "react";
 import type { Map as MapLibreMap } from "maplibre-gl";
-import type { PinDetail, Precision } from "@/lib/pins/repository";
+import type { ChosenPrecision, PinDetail } from "@/lib/pins/repository";
 import type { InterestId } from "@/lib/interests";
-import { usePlacement } from "./usePlacement";
+import type { ConnectionId } from "@/lib/connections";
+import { toggled } from "@/lib/vocabulary";
+import { usePlacement, type Surroundings } from "./usePlacement";
 import { usePlanting } from "./usePlanting";
 
-export type Step = "closed" | "placing" | "describing" | "interests" | "done";
+export type Step = "closed" | "placing" | "connecting" | "describing" | "interests" | "done";
 
 export type Details = {
   displayName: string;
   neighborhood: string;
   note: string;
-  precision: Precision;
+  precision: ChosenPrecision;
   interests: InterestId[];
+  connections: ConnectionId[];
 };
 
 const EMPTY: Details = {
   displayName: "",
   neighborhood: "",
   note: "",
-  precision: "neighborhood",
+  precision: "city",
   interests: [],
+  connections: [],
 };
+
+const NO_AREA = "We could not work out which city that is. Move your tag a little and try again.";
+
+/** The level somebody asked for, or the other one when only that is known. */
+function levelFor(surroundings: Surroundings, wanted: ChosenPrecision): ChosenPrecision {
+  if (surroundings[wanted]) return wanted;
+  return wanted === "city" ? "region" : "city";
+}
 
 /**
  * Placing a pin, now that signing in happens before the map is ever shown.
- * There is no email step and nothing held across a page load, so the flow is
- * place, describe, done.
+ * The flow is place, say how you are connected to Japan, describe yourself,
+ * pick interests, done.
  */
 export function useAddPin(map: MapLibreMap | null, onPlanted: () => void) {
   const [step, setStep] = useState<Step>("closed");
   const [details, setDetails] = useState<Details>(EMPTY);
+  const [areaError, setAreaError] = useState<string | null>(null);
 
   const placement = usePlacement(map);
   const planting = usePlanting(
@@ -47,48 +60,63 @@ export function useAddPin(map: MapLibreMap | null, onPlanted: () => void) {
   );
 
   const confirmPlacement = useCallback(async () => {
-    setStep("describing");
-    const suggestion = await placement.capture();
-    setDetails((current) => (current.neighborhood ? current : { ...current, neighborhood: suggestion }));
+    setAreaError(null);
+    setStep("connecting");
+    const found = await placement.capture();
+    setDetails((current) => {
+      const precision = levelFor(found, current.precision);
+      return { ...current, precision, neighborhood: found[precision]?.name ?? "" };
+    });
   }, [placement]);
 
+  /** Switching level swaps in that level's name, which the person can still edit. */
+  const choosePrecision = useCallback(
+    (precision: ChosenPrecision) =>
+      setDetails((current) => ({
+        ...current,
+        precision,
+        neighborhood: placement.surroundings?.[precision]?.name ?? current.neighborhood,
+      })),
+    [placement.surroundings],
+  );
+
   const submit = useCallback(async () => {
-    // A neighborhood pin sends the neighborhood's centre and nothing else, so
-    // the exact spot never leaves this browser. Without a centre to fall back
-    // on, the safer choice is to refuse rather than silently publish the spot.
-    const exact = placement.position;
-    const point = details.precision === "exact" ? exact : placement.centre;
-    if (!point) return;
+    // Only the middle of the chosen area is sent, so the spot under the tag
+    // never leaves this browser. Without an area the pin is refused rather
+    // than published somewhere nobody chose.
+    const area = placement.surroundings?.[details.precision];
+    if (!area) {
+      setAreaError(NO_AREA);
+      return;
+    }
 
     await planting.plant({
       displayName: details.displayName.trim(),
       neighborhood: details.neighborhood.trim(),
       note: details.note.trim() || null,
-      lng: point.lng,
-      lat: point.lat,
+      lng: area.centre.lng,
+      lat: area.centre.lat,
       precision: details.precision,
       interests: details.interests,
+      connections: details.connections,
     });
-  }, [details, placement.position, placement.centre, planting]);
+  }, [details, placement.surroundings, planting]);
 
   return {
     step,
     details,
+    surroundings: placement.surroundings,
     busy: planting.busy || placement.locating,
-    error: planting.error ?? placement.locateError,
+    error: areaError ?? planting.error ?? placement.locateError,
     patchDetails: (patch: Partial<Details>) => setDetails((current) => ({ ...current, ...patch })),
-    toInterests: () => setStep("interests"),
-    backToDetails: () => setStep("describing"),
+    choosePrecision,
+    goTo: setStep,
     toggleInterest: (id: InterestId) =>
-      setDetails((current) => ({
-        ...current,
-        interests: current.interests.includes(id)
-          ? current.interests.filter((kept) => kept !== id)
-          : [...current.interests, id],
-      })),
+      setDetails((current) => ({ ...current, interests: toggled(current.interests, id) })),
+    toggleConnection: (id: ConnectionId) =>
+      setDetails((current) => ({ ...current, connections: toggled(current.connections, id) })),
     open: () => setStep("placing"),
     close: () => setStep("closed"),
-    back: () => setStep("placing"),
     locate: placement.locate,
     confirmPlacement,
     submit,

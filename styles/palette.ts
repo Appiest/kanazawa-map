@@ -89,6 +89,8 @@ const RAMPS = {
   paper: { hue: 87.6, maxChroma: 0.016, steps: [50, 100, 200, 300, 400, 500, 600, 650, 700, 800, 900, 950] },
   green: { hue: 152, maxChroma: 0.145, steps: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900] },
   clay: { hue: 35, maxChroma: 0.145, steps: [500, 700] },
+  /** The host site's color. Change the hue here to re-skin the frame. */
+  brand: { hue: 295, maxChroma: 0.19, steps: [900] },
 
   land: { hue: 82, maxChroma: 0.059, steps: [50, 100, 200, 300, 400, 500] },
   water: { hue: 232, maxChroma: 0.1, steps: [100, 200, 300, 400, 500, 700] },

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Panel, TagHole } from "@/components/ui/Panel";
 import type { PinContact, PinDetail } from "@/lib/pins/repository";
 import { labelFor } from "@/lib/interests";
+import { ConnectionLine } from "@/components/ui/ConnectionLine";
 import { ReportPin } from "./ReportPin";
 import { safeUrl } from "@/lib/safeUrl";
 
@@ -104,6 +105,7 @@ function CardBody({ detail, contact }: { detail: DetailState; contact: ContactSt
     <>
       <h2 className="text-2xl font-semibold text-text-primary">{pin.displayName}</h2>
       <p className="text-sm text-text-secondary">{pin.neighborhood}</p>
+      <ConnectionLine connections={pin.connections} />
       {pin.note ? (
         <p className="mt-3 border-t border-separator pt-3 text-[0.9375rem] leading-relaxed text-text-body">
           {pin.note}

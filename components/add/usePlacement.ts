@@ -6,34 +6,37 @@ import { cameraDuration } from "@/lib/motion";
 
 export type Position = { lng: number; lat: number };
 
-export type Surroundings = { name: string; centre: Position | null };
+export type Area = { name: string; centre: Position };
 
-async function describeSurroundings(lng: number, lat: number): Promise<Surroundings> {
+/** The city and the region around a point. Either can be missing. */
+export type Surroundings = { city: Area | null; region: Area | null };
+
+const UNKNOWN: Surroundings = { city: null, region: null };
+
+export async function describeSurroundings(lng: number, lat: number): Promise<Surroundings> {
   try {
     const response = await fetch(`/api/geocode/reverse?lat=${lat}&lng=${lng}`);
-    const body = (await response.json()) as { name: string | null; centre: Position | null };
-    return { name: body.name ?? "", centre: body.centre };
+    if (!response.ok) return UNKNOWN;
+    return (await response.json()) as Surroundings;
   } catch {
-    // A missing suggestion just leaves the field empty for someone to type.
-    return { name: "", centre: null };
+    return UNKNOWN;
   }
 }
 
 /** Where the tag goes: the map centre, steered by hand or by the browser. */
 export function usePlacement(map: MapLibreMap | null) {
-  const [position, setPosition] = useState<Position | null>(null);
-  const [centre, setCentre] = useState<Position | null>(null);
+  const [surroundings, setSurroundings] = useState<Surroundings | null>(null);
   const [locating, setLocating] = useState(false);
   const [locateError, setLocateError] = useState<string | null>(null);
 
-  const capture = useCallback(async (): Promise<string> => {
-    if (!map) return "";
+  /** The spot under the tag is read once, turned into areas, and dropped. */
+  const capture = useCallback(async (): Promise<Surroundings> => {
+    if (!map) return UNKNOWN;
+    setSurroundings(null);
     const center = map.getCenter();
-    setPosition({ lng: center.lng, lat: center.lat });
-
-    const surroundings = await describeSurroundings(center.lng, center.lat);
-    setCentre(surroundings.centre);
-    return surroundings.name;
+    const found = await describeSurroundings(center.lng, center.lat);
+    setSurroundings(found);
+    return found;
   }, [map]);
 
   const locate = useCallback(() => {
@@ -57,5 +60,5 @@ export function usePlacement(map: MapLibreMap | null) {
     );
   }, [map]);
 
-  return { position, centre, capture, locate, locating, locateError };
+  return { surroundings, capture, locate, locating, locateError };
 }

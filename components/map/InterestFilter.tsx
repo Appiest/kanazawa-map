@@ -4,7 +4,7 @@ import { FunnelIcon, XIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
 import { TagPicker } from "@/components/ui/TagPicker";
-import { labelFor, type InterestId } from "@/lib/interests";
+import { INTERESTS, labelFor, type InterestId } from "@/lib/interests";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 
 /** Names the one thing being filtered, or counts them. */
@@ -79,7 +79,7 @@ export function InterestFilterPanel({ selected, onToggle, onClear, onClose }: Pa
         </Button>
       </div>
       <div className="max-h-[46vh] overflow-y-auto pr-1">
-        <TagPicker legend="Interests" selected={selected} onToggle={onToggle} />
+        <TagPicker legend="Interests" options={INTERESTS} selected={selected} onToggle={onToggle} />
       </div>
       <div className="mt-4 flex items-center gap-2">
         <Button onClick={onClose}>Show these</Button>

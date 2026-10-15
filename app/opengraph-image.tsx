@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { APP_NAME } from "@/lib/config";
 import { hexOf } from "@/styles/palette";
+import { SITE } from "@/lib/content";
 
 export const alt = `${APP_NAME}, a map of Asian Americans across the country`;
 export const size = { width: 1200, height: 630 };
@@ -49,7 +50,7 @@ export default async function OpengraphImage() {
         <div style={{ display: "flex", flexDirection: "column", position: "relative" }}>
           <div style={{ fontSize: 76, color: hexOf("paper", 900), letterSpacing: -1 }}>{APP_NAME}</div>
           <div style={{ fontSize: 34, color: hexOf("paper", 650), marginTop: 10 }}>
-            Find Asian Americans near you, and let them find you.
+            {SITE.tagline}
           </div>
         </div>
       </div>

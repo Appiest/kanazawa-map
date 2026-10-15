@@ -24,6 +24,7 @@
   --color-green-900: oklch(0.286 0.0746 152); /* #013416 */
   --color-clay-500: oklch(0.7 0.1334 35); /* #e47d64 */
   --color-clay-700: oklch(0.487 0.1363 35); /* #9e3b23 */
+  --color-brand-900: oklch(0.286 0.1178 295); /* #31165d */
   --color-land-50: oklch(0.985 0.0140 82); /* #fff9f0 */
   --color-land-100: oklch(0.9585 0.0201 82); /* #f8f0e3 */
   --color-land-200: oklch(0.928 0.0248 82); /* #f0e6d5 */

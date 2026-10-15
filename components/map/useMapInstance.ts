@@ -5,7 +5,8 @@ import { AttributionControl, Map as MapLibreMap, addProtocol, setWorkerUrl } fro
 import { Protocol } from "pmtiles";
 import { buildMapStyle } from "@/styles/map-style";
 import { INITIAL_BOUNDS, MAX_BOUNDS } from "@/lib/config";
-import { renderCluster, renderPin, type PinVariant } from "./pin-icons";
+import type { MarkerKind } from "@/styles/markers";
+import { renderMarker } from "./pin-icons";
 
 let mapLibreConfigured = false;
 
@@ -22,15 +23,12 @@ function configureMapLibreOnce() {
   mapLibreConfigured = true;
 }
 
-const PIN_VARIANTS: PinVariant[] = ["person", "person-selected", "anchor", "gathering"];
+const MARKER_KINDS: MarkerKind[] = ["person", "person-selected", "place", "event", "cluster"];
 
 function addPinImages(map: MapLibreMap) {
   const pixelRatio = Math.min(window.devicePixelRatio || 1, 3);
-  for (const variant of PIN_VARIANTS) {
-    if (!map.hasImage(variant)) map.addImage(variant, renderPin(variant, pixelRatio), { pixelRatio });
-  }
-  if (!map.hasImage("cluster")) {
-    map.addImage("cluster", renderCluster(pixelRatio), { pixelRatio });
+  for (const kind of MARKER_KINDS) {
+    if (!map.hasImage(kind)) map.addImage(kind, renderMarker(kind, pixelRatio), { pixelRatio });
   }
 }
 

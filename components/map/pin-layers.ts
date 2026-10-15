@@ -24,7 +24,7 @@ export const anchorLayer: LayerSpecification = {
   source: ANCHOR_SOURCE_ID,
   minzoom: 5,
   layout: {
-    "icon-image": "anchor",
+    "icon-image": "place",
     "icon-anchor": "bottom",
     "icon-allow-overlap": true,
     "text-field": ["get", "name"],
@@ -47,7 +47,7 @@ export const gatheringLayer: LayerSpecification = {
   type: "symbol",
   source: GATHERING_SOURCE_ID,
   layout: {
-    "icon-image": "gathering",
+    "icon-image": "event",
     "icon-anchor": "bottom",
     "icon-allow-overlap": true,
     "text-field": ["get", "title"],
@@ -118,3 +118,12 @@ export const selectedPinLayer: LayerSpecification = {
 export function selectionFilter(seq: number | null): FilterSpecification {
   return seq === null ? NOTHING_SELECTED : ["==", ["get", "seq"], seq];
 }
+
+/** The three kinds of marker someone can show or hide, and the layers each one draws. */
+export type MarkerGroup = "people" | "places" | "events";
+
+export const LAYERS_BY_GROUP: Record<MarkerGroup, string[]> = {
+  people: [PIN_LAYER_ID, CLUSTER_LAYER_ID, SELECTED_LAYER_ID],
+  places: [ANCHOR_LAYER_ID],
+  events: [GATHERING_LAYER_ID],
+};

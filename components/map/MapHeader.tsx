@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { APP_NAME } from "@/lib/config";
+import { SITE } from "@/lib/content";
 
 type Props = {
   children?: ReactNode;
@@ -39,7 +40,7 @@ export function MapHeader(props: Props) {
     <header className="pointer-events-none absolute top-4 left-4 z-10 max-w-[min(19rem,calc(100vw-7rem))] sm:top-6 sm:left-6">
       <h1 className="text-lg font-semibold text-text-primary">{APP_NAME}</h1>
       <p className="mt-0.5 text-sm leading-snug text-text-secondary">
-        Find Asian Americans near you, and let them find you.
+        {SITE.tagline}
       </p>
       {/* The region stays in the document so a later message is announced.
           Swapping the element in and out can leave a screen reader silent. */}

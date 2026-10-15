@@ -1,4 +1,4 @@
-import { hexOf } from "@/styles/palette";
+import { MARKERS } from "@/styles/markers";
 
 /**
  * The motif at rest: tags standing in the lower right, the way pins gather on
@@ -36,10 +36,10 @@ export function TagField() {
       >
         <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMax meet">
           {TAGS.map((tag) => (
-            <g key={`${tag.x}-${tag.y}`} transform={`translate(${tag.x} ${tag.y}) scale(${tag.s})`}>
-              <rect x="-0.11" y="0" width="0.22" height="4.4" fill={hexOf("green", 700)} />
-              <rect x="-1.5" y="-2.7" width="3" height="2.1" rx="0.42" fill={hexOf("green", 600)} />
-              <circle cx="0" cy="-1.62" r="0.3" fill={hexOf("green", 100)} />
+            <g key={`${tag.x}-${tag.y}`} transform={`translate(${tag.x} ${tag.y}) scale(${tag.s * 0.27}) translate(-10 -10)`}>
+              {MARKERS.person.parts.map((part) => (
+                <path key={part.d} d={part.d} fill={part.fill} />
+              ))}
             </g>
           ))}
         </svg>

@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { keepKnownConnections } from "@/lib/connections";
 import { keepKnown } from "@/lib/interests";
 import { encodePins } from "@/lib/pins/format";
-import { createPin, listPinPoints } from "@/lib/pins/repository";
+import { createPin, listPinPoints, PRECISIONS } from "@/lib/pins/repository";
 
 /**
  * Every pin on the map as packed binary. A worker decodes it off the main
@@ -31,11 +32,12 @@ const newPinSchema = z.object({
   note: z.string().trim().max(180).nullable(),
   lng: z.number().min(-180).max(180),
   lat: z.number().min(-90).max(90),
-  // Defaults to the safer of the two, so a caller that omits it cannot end up
-  // publishing somebody's doorstep by accident.
-  precision: z.enum(["neighborhood", "exact"]).default("neighborhood"),
+  // There is no exact option. Every level is the middle of an area, so no
+  // caller can publish a home address, whatever it sends.
+  precision: z.enum(PRECISIONS).default("city"),
   // Anything outside the vocabulary is dropped rather than stored.
   interests: z.array(z.string()).max(20).default([]).transform(keepKnown),
+  connections: z.array(z.string()).max(10).default([]).transform(keepKnownConnections),
 });
 
 function bearerToken(request: Request): string | null {

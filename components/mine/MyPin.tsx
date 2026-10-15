@@ -5,7 +5,8 @@ import { motion } from "motion/react";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { Panel } from "@/components/ui/Panel";
 import { PlacementGhost } from "@/components/add/PlacementGhost";
-import type { OwnPin } from "@/lib/pins/repository";
+import { describeSurroundings } from "@/components/add/usePlacement";
+import type { ChosenPrecision, OwnPin } from "@/lib/pins/repository";
 import type { useMyPin } from "@/lib/pins/useMyPin";
 import { cameraDuration } from "@/lib/motion";
 import { signOut } from "@/lib/supabase/browser";
@@ -29,7 +30,22 @@ function toValues(pin: OwnPin): EditValues {
     instagram: pin.instagram ?? "",
     website: pin.website ?? "",
     interests: pin.interests,
+    connections: pin.connections,
   };
+}
+
+/** Pins from before city and region existed move as city pins. */
+function levelOf(pin: OwnPin): ChosenPrecision {
+  return pin.precision === "region" ? "region" : "city";
+}
+
+/** Where a moved tag lands: the middle of the same kind of area, wherever that now is. */
+async function areaUnder(map: MapLibreMap | null, level: ChosenPrecision) {
+  const center = map?.getCenter();
+  if (!center) throw new Error("The map is not ready yet");
+  const area = (await describeSurroundings(center.lng, center.lat))[level];
+  if (!area) throw new Error("We could not work out which city that is. Move your tag a little and try again.");
+  return area;
 }
 
 const trimmed = (value: string) => value.trim() || null;
@@ -78,6 +94,7 @@ export function MyPin({ pin, map, controls, onClose }: Props) {
         lat: pin.lat,
         precision: pin.precision,
         interests: values.interests,
+        connections: values.connections,
       });
       await controls.saveHandles({
         instagram: trimmed(values.instagram),
@@ -87,16 +104,17 @@ export function MyPin({ pin, map, controls, onClose }: Props) {
 
   const saveMove = () =>
     run(async () => {
-      const center = map?.getCenter();
-      if (!center) throw new Error("The map is not ready yet");
+      const level = levelOf(pin);
+      const area = await areaUnder(map, level);
       await controls.saveDetails({
         displayName: pin.displayName,
-        neighborhood: pin.neighborhood,
+        neighborhood: area.name,
         note: pin.note,
-        lng: center.lng,
-        lat: center.lat,
-        precision: pin.precision,
+        lng: area.centre.lng,
+        lat: area.centre.lat,
+        precision: level,
         interests: pin.interests,
+        connections: pin.connections,
       });
     }, () => setScreen("summary"));
 
@@ -158,7 +176,7 @@ function screenViews(args: ViewArgs): Record<Screen, ReactNode> {
         error={error}
       />
     ),
-    moving: <MoveStep onConfirm={args.saveMove} onCancel={() => setScreen("summary")} saving={busy} />,
+    moving: <MoveStep level={levelOf(pin)} onConfirm={args.saveMove} onCancel={() => setScreen("summary")} saving={busy} />,
     removing: (
       <RemoveStep
         onConfirm={args.confirmRemove}
