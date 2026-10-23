@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowSquareOutIcon, MapPinIcon, SignInIcon } from "@phosphor-icons/react";
+import { MapPinIcon, SignInIcon } from "@phosphor-icons/react";
 import { ButtonLink } from "@/components/ui/Button";
 import { fullMapUrl } from "@/lib/embed/fullMapLink";
 
@@ -40,21 +40,11 @@ function PrimaryAction({ signedIn, onMap }: Props) {
   );
 }
 
-/** The embed's only controls: a way in, and a way to the full map. */
+/** The embed's only control: a way in. The page around the frame links to the full map. */
 export function EmbedControls(props: Props) {
   return (
     <div className={CORNER} data-touch-target>
       <PrimaryAction {...props} />
-      <ButtonLink
-        variant="quiet"
-        href={fullMapUrl(false)}
-        target="_top"
-        onClick={openTop(false)}
-        className="bg-bg-surface shadow-sm"
-      >
-        <ArrowSquareOutIcon size={16} aria-hidden />
-        Open the full map
-      </ButtonLink>
     </div>
   );
 }

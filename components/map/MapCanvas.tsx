@@ -119,7 +119,7 @@ export default function MapCanvas({ anchors, shown, session, variant }: Props) {
   return (
     <div className="absolute inset-0 bg-bg-page">
       <div ref={container} className="h-full w-full" />
-      <MapHeader count={count} visible={shown.people ? visible : null} error={error} ready={layersReady}>
+      <MapHeader titled={!isEmbed} count={count} visible={shown.people ? visible : null} error={error} ready={layersReady}>
         <InterestFilterButton selected={filter.selected} onClear={filter.clear} onOpen={openFilter} />
       </MapHeader>
       {filter.open ? (

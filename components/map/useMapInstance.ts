@@ -65,14 +65,14 @@ export function whenStyleReady(map: MapLibreMap, job: () => void) {
 }
 
 /**
- * `cooperativeGestures` is for the embed: a page that scrolls past the map
- * keeps scrolling, and the map moves only with two fingers or a modifier key.
+ * In the embed, a page that scrolls past the map keeps scrolling, and the map
+ * moves only with two fingers or a modifier key (cooperative gestures).
  */
-function createMap(container: HTMLDivElement, cooperativeGestures: boolean): MapLibreMap {
+function createMap(container: HTMLDivElement, embedded: boolean): MapLibreMap {
   configureMapLibreOnce();
   const map = new MapLibreMap({
     container,
-    cooperativeGestures,
+    cooperativeGestures: embedded,
     style: buildMapStyle(),
     bounds: INITIAL_BOUNDS,
     fitBoundsOptions: { padding: { top: 48, bottom: 48, left: 48, right: 48 } },
@@ -85,20 +85,21 @@ function createMap(container: HTMLDivElement, cooperativeGestures: boolean): Map
     fadeDuration: 120,
   });
   map.touchZoomRotate.disableRotation();
-  // Out of the corner the primary action occupies.
-  map.addControl(new AttributionControl({ compact: true }), "top-right");
+  // Out of the corners the header and the primary action occupy. The embed has no
+  // title, so its status line runs wider and the credit moves to the free bottom corner.
+  map.addControl(new AttributionControl({ compact: true }), embedded ? "bottom-left" : "top-right");
   return map;
 }
 
 /** Holds the map in state so consumers re-render the moment it exists. */
-export function useMapInstance(container: React.RefObject<HTMLDivElement | null>, cooperativeGestures = false) {
+export function useMapInstance(container: React.RefObject<HTMLDivElement | null>, embedded = false) {
   const [map, setMap] = useState<MapLibreMap | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
 
   useEffect(() => {
     if (!container.current || mapRef.current) return;
 
-    const instance = createMap(container.current, cooperativeGestures);
+    const instance = createMap(container.current, embedded);
     mapRef.current = instance;
     setMap(instance);
 
@@ -115,7 +116,7 @@ export function useMapInstance(container: React.RefObject<HTMLDivElement | null>
       mapRef.current = null;
       setMap(null);
     };
-  }, [container, cooperativeGestures]);
+  }, [container, embedded]);
 
   return map;
 }

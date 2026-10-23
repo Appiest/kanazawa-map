@@ -10,6 +10,8 @@ type Props = {
   visible: number | null;
   error: string | null;
   ready: boolean;
+  /** False inside the website's frame, where the page around it already names the map. */
+  titled?: boolean;
 };
 
 const QUIET = "text-text-secondary";
@@ -38,10 +40,14 @@ export function MapHeader(props: Props) {
 
   return (
     <header className="pointer-events-none absolute top-4 left-4 z-10 max-w-[min(19rem,calc(100vw-7rem))] sm:top-6 sm:left-6">
-      <h1 className="text-lg font-semibold text-text-primary">{APP_NAME}</h1>
-      <p className="mt-0.5 text-sm leading-snug text-text-secondary">
-        {SITE.tagline}
-      </p>
+      {props.titled === false ? (
+        <h1 className="sr-only">{APP_NAME}</h1>
+      ) : (
+        <>
+          <h1 className="text-lg font-semibold text-text-primary">{APP_NAME}</h1>
+          <p className="mt-0.5 text-sm leading-snug text-text-secondary">{SITE.tagline}</p>
+        </>
+      )}
       {/* The region stays in the document so a later message is announced.
           Swapping the element in and out can leave a screen reader silent. */}
       <p role="status" className={`mt-2 text-sm leading-snug ${status ? status.tone : ""}`}>
