@@ -66,7 +66,7 @@ async function lookUp(lat: number, lng: number, level: Level): Promise<Area | nu
 
 /** Development without Supabase has no accounts, so there is nobody to count. */
 async function takeLookupAllowance(request: Request): Promise<void> {
-  if (!isSupabaseConfigured) return;
+  if (!isSupabaseConfigured && process.env.NODE_ENV !== "production") return;
   const { error } = await callerClient(bearerToken(request)).rpc("note_geocode_lookup");
   assertNoDatabaseError(error);
 }
