@@ -12,7 +12,8 @@
     "predev": "node scripts/copy-map-worker.mjs && node scripts/build-glyphs.mjs",
     "prebuild": "node scripts/copy-map-worker.mjs && node scripts/build-glyphs.mjs",
     "tokens": "node scripts/generate-tokens.ts",
-    "setup": "node scripts/copy-map-worker.mjs && node scripts/build-glyphs.mjs"
+    "setup": "node scripts/copy-map-worker.mjs && node scripts/build-glyphs.mjs",
+    "check:db": "node scripts/check-migrations.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
@@ -28,6 +29,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^22.10.0",
     "@types/react": "^19.3.0",
