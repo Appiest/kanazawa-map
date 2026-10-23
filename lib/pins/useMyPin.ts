@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { ContactHandles, NewPin, OwnPin } from "./repository";
-import { authIsAvailable, currentAccessToken, onAuthSettled } from "@/lib/supabase/browser";
+import type { HandleSettings, NewPin, OwnPin } from "./types";
+import { authorizedFetch, jsonBody, throwUnlessOk } from "@/lib/http/client";
 
 type State =
   | { status: "unknown" }
@@ -11,27 +11,19 @@ type State =
 
 const NO_PIN: State = { status: "none" };
 
-async function authorized(path: string, init: RequestInit = {}): Promise<Response | null> {
-  const token = await currentAccessToken();
-  if (!token) return null;
-  return fetch(path, {
-    ...init,
-    headers: { ...init.headers, Authorization: `Bearer ${token}` },
-  });
-}
-
 async function loadOwnPin(): Promise<State> {
-  if (!authIsAvailable) return NO_PIN;
-
-  const response = await authorized("/api/me/pin");
+  const response = await authorizedFetch("/me/pin");
   if (!response?.ok) return NO_PIN;
 
   const body = (await response.json()) as { pin: OwnPin | null };
   return body.pin ? { status: "mine", pin: body.pin } : NO_PIN;
 }
 
-/** The signed-in person's own pin, and the ways they can change it. */
-export function useMyPin(onChanged: () => void) {
+/**
+ * The signed-in person's own pin, and the ways they can change it. Re-read
+ * whenever the session token changes, since that changes whose pin it is.
+ */
+export function useMyPin(sessionToken: string | null, onChanged: () => void) {
   const [state, setState] = useState<State>({ status: "unknown" });
   const [revision, setRevision] = useState(0);
 
@@ -39,27 +31,20 @@ export function useMyPin(onChanged: () => void) {
 
   useEffect(() => {
     let current = true;
-    loadOwnPin()
-      .then((next) => current && setState(next))
-      .catch(() => current && setState(NO_PIN));
+    const next = sessionToken ? loadOwnPin() : Promise.resolve(NO_PIN);
+    next.then(
+      (found) => current && setState(found),
+      () => current && setState(NO_PIN),
+    );
 
     return () => {
       current = false;
     };
-  }, [revision]);
-
-  // Signing in or out changes whose pin this is, and the session can land after
-  // the first read, so the answer is taken again whenever it settles.
-  useEffect(() => onAuthSettled(() => reload()), [reload]);
+  }, [revision, sessionToken]);
 
   const saveDetails = useCallback(
     async (pin: NewPin) => {
-      const response = await authorized("/api/pins", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pin),
-      });
-      if (!response?.ok) throw new Error("Unable to save your changes");
+      await throwUnlessOk(await authorizedFetch("/pins", jsonBody(pin, { method: "POST" })), "Unable to save your changes");
       reload();
       onChanged();
     },
@@ -67,21 +52,18 @@ export function useMyPin(onChanged: () => void) {
   );
 
   const saveHandles = useCallback(
-    async (handles: ContactHandles) => {
-      const response = await authorized("/api/me/pin", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(handles),
-      });
-      if (!response?.ok) throw new Error("Unable to save those details");
+    async (handles: HandleSettings) => {
+      await throwUnlessOk(
+        await authorizedFetch("/me/pin", jsonBody(handles, { method: "PATCH" })),
+        "Unable to save those details",
+      );
       reload();
     },
     [reload],
   );
 
   const remove = useCallback(async () => {
-    const response = await authorized("/api/me/pin", { method: "DELETE" });
-    if (!response?.ok) throw new Error("Unable to remove your pin");
+    await throwUnlessOk(await authorizedFetch("/me/pin", { method: "DELETE" }), "Unable to remove your pin");
     setState(NO_PIN);
     onChanged();
   }, [onChanged]);

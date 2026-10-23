@@ -1,4 +1,5 @@
 import { findPinDetails } from "@/lib/pins/repository";
+import { failureResponse } from "@/lib/server/failure";
 
 const MAX_SEQS = 80;
 
@@ -16,8 +17,12 @@ export async function GET(request: Request) {
 
   if (seqs.length === 0) return Response.json({ pins: [] });
 
-  return Response.json(
-    { pins: await findPinDetails(seqs) },
-    { headers: { "Cache-Control": "public, max-age=60, s-maxage=60, stale-while-revalidate=86400" } },
-  );
+  try {
+    return Response.json(
+      { pins: await findPinDetails(seqs) },
+      { headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" } },
+    );
+  } catch (cause) {
+    return failureResponse(cause);
+  }
 }
