@@ -76,9 +76,14 @@ function cardViewer(variant: MapVariant, signedIn: boolean, ownSeq: number | nul
   };
 }
 
-type ControlsProps = Omit<React.ComponentProps<typeof FullMapControls>, "signIn"> & { variant: MapVariant };
+type ControlsProps = Omit<React.ComponentProps<typeof FullMapControls>, "signIn"> & {
+  variant: MapVariant;
+  sessionKnown: boolean;
+};
 
-function MapControls({ variant, ...full }: ControlsProps) {
+/** Nothing until the session is read, so a signed-in visitor never sees "Sign in" flash past. */
+function MapControls({ variant, sessionKnown, ...full }: ControlsProps) {
+  if (!sessionKnown) return null;
   if (variant.kind === "full") return <FullMapControls {...full} signIn={variant.signIn} />;
   const { status } = full.mine.state;
   return <EmbedControls signedIn={full.signedIn} onMap={status === "unknown" ? null : status === "mine"} />;
@@ -134,6 +139,7 @@ export default function MapCanvas({ anchors, shown, session, variant }: Props) {
       />
       <MapControls
         variant={variant}
+        sessionKnown={session.status !== "checking"}
         map={map}
         signedIn={token !== null}
         mine={mine}
