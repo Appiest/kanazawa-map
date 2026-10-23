@@ -11,6 +11,8 @@ export type Viewer = {
   signedIn: boolean;
   /** Where "Sign in" goes. Null hides contact entirely for signed-out viewers. */
   onSignIn: (() => void) | null;
+  /** The viewer's own pin, which has nobody to contact. */
+  ownSeq: number | null;
 };
 
 const ROW = "flex items-center gap-2 text-sm text-text-body";
@@ -75,6 +77,7 @@ function SignedIn({ seq, name, state }: { seq: number; name: string; state: Hand
 
 /** How to reach somebody. An email address is never part of it. */
 export function PinContact({ seq, name, state, viewer }: { seq: number; name: string; state: HandlesState; viewer: Viewer }) {
+  if (seq === viewer.ownSeq) return null;
   if (!viewer.signedIn) {
     if (!viewer.onSignIn) return null;
     return (
