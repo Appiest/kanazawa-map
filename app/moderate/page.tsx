@@ -3,7 +3,7 @@ import { Queue } from "@/components/moderate/Queue";
 import { APP_NAME } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: `Reports — ${APP_NAME}`,
+  title: `Reports, ${APP_NAME}`,
   robots: { index: false, follow: false },
 };
 
