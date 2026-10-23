@@ -36,9 +36,9 @@ export function InterestFilterButton({ selected, onOpen, onClear }: ButtonProps)
   return (
     <div className="pointer-events-auto mt-3 flex max-w-full items-center gap-2" data-touch-target>
       <Button
-        variant="quiet"
+        variant={filtering ? "chipSelected" : "chip"}
         onClick={onOpen}
-        className={`min-w-0 ${filtering ? "bg-bg-inverse text-text-inverse" : "bg-bg-surface shadow-sm"}`}
+        className="min-w-0"
         aria-label={filtering ? `Filtering by ${summary}. Change it` : "Filter the map by interest"}
       >
         <FunnelIcon size={15} weight={filtering ? "fill" : "regular"} aria-hidden className="shrink-0" />
