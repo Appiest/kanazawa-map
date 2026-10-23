@@ -1,21 +1,15 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { NewPin, PinDetail } from "@/lib/pins/repository";
-import { currentAccessToken } from "@/lib/supabase/browser";
+import type { NewPin, PinDetail } from "@/lib/pins/types";
+import { authorizedFetch, jsonBody, throwUnlessOk } from "@/lib/http/client";
 
-async function postPin(pin: NewPin, token: string | null): Promise<PinDetail> {
-  const response = await fetch("/api/pins", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify(pin),
-  });
-  const body = await response.json();
-  if (!response.ok) throw new Error(body.error ?? "Unable to save your pin");
-  return body as PinDetail;
+async function postPin(pin: NewPin): Promise<PinDetail> {
+  const response = await throwUnlessOk(
+    await authorizedFetch("/pins", jsonBody(pin, { method: "POST" })),
+    "Unable to save your pin",
+  );
+  return (await response.json()) as PinDetail;
 }
 
 /**
@@ -32,7 +26,7 @@ export function usePlanting(onPlanted: (pin: PinDetail) => void) {
       setError(null);
       setBusy(true);
       try {
-        onPlanted(await postPin(pin, await currentAccessToken()));
+        onPlanted(await postPin(pin));
         return true;
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : "Unable to save your pin");

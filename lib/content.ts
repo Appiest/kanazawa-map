@@ -17,8 +17,8 @@ export const LANDING = {
     "the community they once held is spread across the basin, and most cities have the same " +
     "story. This is a map of where people actually are, wherever you live.",
   privacy:
-    "Your name and city or region show on the map. Your email is shown only to other people who " +
-    "are on it, and you can take yourself off at any time.",
+    "Your name and city or region show on the map. Your email is never shown to anyone. People " +
+    "reach you through the map, and you choose whether to reply. You can take yourself off at any time.",
   benefits: [
     {
       markers: ["person"],

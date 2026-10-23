@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import type { Map as MapLibreMap } from "maplibre-gl";
-import type { ChosenPrecision, PinDetail } from "@/lib/pins/repository";
+import type { ChosenPrecision, PinDetail } from "@/lib/pins/types";
 import type { InterestId } from "@/lib/interests";
 import type { ConnectionId } from "@/lib/connections";
 import { toggled } from "@/lib/vocabulary";

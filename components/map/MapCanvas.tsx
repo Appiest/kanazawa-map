@@ -3,9 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Map as MapLibreMap } from "maplibre-gl";
-import type { AnchorPlace } from "@/lib/pins/repository";
-import { useContact } from "@/lib/pins/useContact";
-import { useEnsureContact } from "@/lib/pins/useEnsureContact";
+import type { AnchorPlace } from "@/lib/pins/types";
+import { usePinHandles } from "@/lib/contact/usePinHandles";
 import { usePinDetail } from "@/lib/pins/usePinDetail";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 import { GatheringFlow } from "@/components/gatherings/GatheringFlow";
@@ -38,7 +37,7 @@ function useSelectionLayer(map: MapLibreMap | null, layersReady: boolean, select
   }, [map, layersReady, selected]);
 }
 
-export default function MapCanvas({ anchors, shown }: { anchors: AnchorPlace[]; shown: Shown }) {
+export default function MapCanvas({ anchors, shown, token }: { anchors: AnchorPlace[]; shown: Shown; token: string }) {
   const container = useRef<HTMLDivElement>(null);
   const map = useMapInstance(container);
   const filter = useInterestFilter();
@@ -46,15 +45,14 @@ export default function MapCanvas({ anchors, shown }: { anchors: AnchorPlace[]; 
   const { count, error, layersReady, refresh } = usePinSource(map, anchors, filter.selected);
   const [selected, setSelected] = useState<number | null>(null);
   const { state, prefetch } = usePinDetail(selected);
-  const contact = useContact(selected);
-  useEnsureContact();
+  const contact = usePinHandles(selected, true);
   useOrientToViewer(map, layersReady);
   const visible = useVisiblePins(map, layersReady);
-  const { gatherings, post } = useGatherings();
+  const { gatherings, post } = useGatherings(token);
   useGatheringSource(map, gatherings);
   useMarkerVisibility(map, shown, (layersReady ? 1 : 0) + gatherings.length);
 
-  const mine = useMyPin(refresh);
+  const mine = useMyPin(token, refresh);
   const mySeq = mine.state.status === "mine" ? mine.state.pin.seq : null;
 
   const dismiss = useCallback(() => setSelected(null), []);
@@ -104,7 +102,7 @@ export default function MapCanvas({ anchors, shown }: { anchors: AnchorPlace[]; 
         />
       ) : null}
       <KeyboardPins map={map} layersReady={layersReady} onSelect={openPin} />
-      <PinCard detail={state} contact={contact} onClose={dismiss} />
+      <PinCard detail={state} contact={contact} viewer={{ signedIn: true, onSignIn: null }} onClose={dismiss} />
       <PinControls
         map={map}
         controls={mine}

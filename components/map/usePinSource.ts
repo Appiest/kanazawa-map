@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { GeoJSONSource, Map as MapLibreMap } from "maplibre-gl";
 import { ANCHOR_SOURCE_ID, PIN_SOURCE_ID } from "@/lib/config";
 import type { PinWorkerResponse } from "@/lib/pins/decode.worker";
-import type { AnchorPlace } from "@/lib/pins/repository";
+import type { AnchorPlace } from "@/lib/pins/types";
+import { apiPath } from "@/lib/paths";
 import { anchorLayer, clusterLayer, pinLayer, selectedPinLayer } from "./pin-layers";
 import { whenStyleReady } from "./useMapInstance";
 
@@ -12,7 +13,7 @@ const EMPTY: GeoJSON.FeatureCollection<GeoJSON.Point> = { type: "FeatureCollecti
 
 /** Filtering happens in the database, so the payload is the answer's size. */
 function pinsUrl(interests: string[]): string {
-  return interests.length === 0 ? "/api/pins" : `/api/pins?interests=${interests.join(",")}`;
+  return interests.length === 0 ? apiPath("/pins") : apiPath(`/pins?interests=${interests.join(",")}`);
 }
 
 function toAnchorCollection(places: AnchorPlace[]): GeoJSON.FeatureCollection<GeoJSON.Point> {

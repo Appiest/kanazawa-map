@@ -1,14 +1,15 @@
 "use client";
 
 import { AnimatePresence } from "motion/react";
-import { EnvelopeSimpleIcon, InstagramLogoIcon, LinkSimpleIcon, LockSimpleIcon, XIcon } from "@phosphor-icons/react";
+import { XIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/Button";
 import { Panel, TagHole } from "@/components/ui/Panel";
-import type { PinContact, PinDetail } from "@/lib/pins/repository";
+import type { HandlesState } from "@/lib/contact/usePinHandles";
+import type { PinDetail } from "@/lib/pins/types";
 import { labelFor } from "@/lib/interests";
 import { ConnectionLine } from "@/components/ui/ConnectionLine";
+import { PinContact, type Viewer } from "./PinContact";
 import { ReportPin } from "./ReportPin";
-import { safeUrl } from "@/lib/safeUrl";
 
 type DetailState =
   | { status: "idle" }
@@ -16,67 +17,7 @@ type DetailState =
   | { status: "ready"; pin: PinDetail }
   | { status: "error"; message: string };
 
-type ContactState =
-  | { status: "hidden" }
-  | { status: "loading" }
-  | { status: "locked" }
-  | { status: "ready"; contact: PinContact };
-
-const ROW = "flex items-center gap-2 text-sm text-text-body";
-const LINK = "underline decoration-paper-400 underline-offset-2 hover:decoration-paper-700";
-
-function ContactRows({ contact, name }: { contact: PinContact; name: string }) {
-  const handle = contact.instagram?.replace(/^@/, "");
-  const website = safeUrl(contact.website);
-  return (
-    <div className="mt-3 space-y-1.5 border-t border-separator pt-3">
-      {contact.email ? (
-        <p className={ROW}>
-          <EnvelopeSimpleIcon size={16} aria-hidden className="shrink-0 text-text-secondary" />
-          <a href={`mailto:${contact.email}`} className={LINK}>
-            {contact.email}
-          </a>
-        </p>
-      ) : null}
-      {handle ? (
-        <p className={ROW}>
-          <InstagramLogoIcon size={16} aria-hidden className="shrink-0 text-text-secondary" />
-          <a href={`https://instagram.com/${handle}`} target="_blank" rel="noreferrer" className={LINK}>
-            {`@${handle}`}
-          </a>
-        </p>
-      ) : null}
-      {website ? (
-        <p className={ROW}>
-          <LinkSimpleIcon size={16} aria-hidden className="shrink-0 text-text-secondary" />
-          <a href={website} target="_blank" rel="noreferrer" className={LINK}>
-            {website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-          </a>
-        </p>
-      ) : null}
-      {!contact.email && !handle && !website ? (
-        <p className="text-sm text-text-secondary">{name} has not added a way to get in touch yet.</p>
-      ) : null}
-    </div>
-  );
-}
-
-function Contact({ state, name }: { state: ContactState; name: string }) {
-  if (state.status === "ready") return <ContactRows contact={state.contact} name={name} />;
-
-  if (state.status === "loading") {
-    return <div className="mt-3 h-4 w-40 rounded bg-bg-sunken" aria-hidden />;
-  }
-
-  return (
-    <p className="mt-3 flex items-start gap-2 text-sm text-text-secondary">
-      <LockSimpleIcon size={16} aria-hidden className="mt-0.5 shrink-0" />
-      Add your own pin to see how to reach {name}
-    </p>
-  );
-}
-
-function CardBody({ detail, contact }: { detail: DetailState; contact: ContactState }) {
+function CardBody({ detail, contact, viewer }: { detail: DetailState; contact: HandlesState; viewer: Viewer }) {
   if (detail.status === "loading") {
     return (
       <div className="space-y-2" aria-hidden>
@@ -123,8 +64,8 @@ function CardBody({ detail, contact }: { detail: DetailState; contact: ContactSt
           ))}
         </ul>
       ) : null}
-      <Contact state={contact} name={pin.displayName} />
-      <ReportPin pin={pin} />
+      <PinContact seq={pin.seq} name={pin.displayName} state={contact} viewer={viewer} />
+      {viewer.signedIn ? <ReportPin pin={pin} /> : null}
     </>
   );
 }
@@ -132,10 +73,12 @@ function CardBody({ detail, contact }: { detail: DetailState; contact: ContactSt
 export function PinCard({
   detail,
   contact,
+  viewer,
   onClose,
 }: {
   detail: DetailState;
-  contact: ContactState;
+  contact: HandlesState;
+  viewer: Viewer;
   onClose: () => void;
 }) {
   return (
@@ -148,7 +91,7 @@ export function PinCard({
               <XIcon size={18} weight="regular" aria-hidden />
             </Button>
           </div>
-          <CardBody detail={detail} contact={contact} />
+          <CardBody detail={detail} contact={contact} viewer={viewer} />
         </Panel>
       ) : null}
     </AnimatePresence>

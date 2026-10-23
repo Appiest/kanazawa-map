@@ -7,7 +7,7 @@ import { TagPicker } from "@/components/ui/TagPicker";
 import { INTERESTS, MIN_INTERESTS, type InterestId } from "@/lib/interests";
 import { CONNECTIONS, MIN_CONNECTIONS, type ConnectionId } from "@/lib/connections";
 import { Field } from "@/components/ui/Field";
-import type { ChosenPrecision } from "@/lib/pins/repository";
+import type { ChosenPrecision } from "@/lib/pins/types";
 import type { Surroundings } from "./usePlacement";
 
 export function PlacementStep({

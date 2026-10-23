@@ -3,6 +3,7 @@ import { Archivo } from "next/font/google";
 import { APP_NAME } from "@/lib/config";
 import { SITE } from "@/lib/content";
 import { hexOf } from "@/styles/palette";
+import { apiPath } from "@/lib/paths";
 import "./theme.css";
 
 const archivo = Archivo({
@@ -49,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {TILE_ORIGIN ? <link rel="preconnect" href={TILE_ORIGIN} crossOrigin="anonymous" /> : null}
         {SUPABASE_ORIGIN ? <link rel="preconnect" href={SUPABASE_ORIGIN} /> : null}
-        <link rel="preload" href="/api/pins" as="fetch" crossOrigin="anonymous" />
+        <link rel="preload" href={apiPath("/pins")} as="fetch" crossOrigin="anonymous" />
       </head>
       <body className="bg-bg-page text-text-body antialiased">{children}</body>
     </html>

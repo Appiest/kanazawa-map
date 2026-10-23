@@ -6,7 +6,7 @@ import type { Map as MapLibreMap } from "maplibre-gl";
 import { Panel } from "@/components/ui/Panel";
 import { PlacementGhost } from "@/components/add/PlacementGhost";
 import { describeSurroundings } from "@/components/add/usePlacement";
-import type { ChosenPrecision, OwnPin } from "@/lib/pins/repository";
+import type { ChosenPrecision, OwnPin } from "@/lib/pins/types";
 import type { useMyPin } from "@/lib/pins/useMyPin";
 import { cameraDuration } from "@/lib/motion";
 import { signOut } from "@/lib/supabase/browser";
@@ -27,8 +27,9 @@ function toValues(pin: OwnPin): EditValues {
     displayName: pin.displayName,
     neighborhood: pin.neighborhood,
     note: pin.note ?? "",
-    instagram: pin.instagram ?? "",
-    website: pin.website ?? "",
+    instagram: pin.handles.instagram ?? "",
+    website: pin.handles.website ?? "",
+    shareHandles: pin.handles.share,
     interests: pin.interests,
     connections: pin.connections,
   };
@@ -99,6 +100,7 @@ export function MyPin({ pin, map, controls, onClose }: Props) {
       await controls.saveHandles({
         instagram: trimmed(values.instagram),
         website: trimmed(values.website),
+        share: values.shareHandles,
       });
     }, () => setScreen("summary"));
 

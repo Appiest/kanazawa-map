@@ -7,7 +7,7 @@ import MapCanvas from "./MapCanvas";
 import { MarkerLegend } from "./MarkerLegend";
 import type { MarkerGroup } from "./pin-layers";
 import { SHOW_EVERYTHING, type Shown } from "./useMarkerVisibility";
-import type { AnchorPlace } from "@/lib/pins/repository";
+import type { AnchorPlace } from "@/lib/pins/types";
 import { APP_NAME } from "@/lib/config";
 import { useSession } from "@/lib/supabase/useSession";
 
@@ -45,7 +45,7 @@ export function MapScreen({ anchors }: { anchors: AnchorPlace[] }) {
   return (
     <SiteFrame fit="screen" footer={<MarkerLegend shown={shown} onToggle={toggle} />}>
       <main className="relative h-full w-full overflow-hidden">
-        <MapCanvas anchors={anchors} shown={shown} />
+        <MapCanvas anchors={anchors} shown={shown} token={session.token} />
       </main>
     </SiteFrame>
   );

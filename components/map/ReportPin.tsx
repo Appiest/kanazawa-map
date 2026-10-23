@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
-import type { PinDetail } from "@/lib/pins/repository";
-import { currentAccessToken } from "@/lib/supabase/browser";
+import type { PinDetail } from "@/lib/pins/types";
+import { authorizedFetch, jsonBody } from "@/lib/http/client";
 
 type State = "closed" | "open" | "sending" | "filed" | "failed";
 
@@ -40,12 +40,10 @@ export function ReportPin({ pin }: { pin: PinDetail }) {
 
   const file = async () => {
     setState("sending");
-    const token = await currentAccessToken();
-    const response = await fetch(`/api/pins/${pin.seq}/report`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ reason: reason.trim() }),
-    }).catch(() => null);
+    const response = await authorizedFetch(
+      `/pins/${pin.seq}/report`,
+      jsonBody({ reason: reason.trim() }, { method: "POST" }),
+    ).catch(() => null);
 
     setState(response?.ok ? "filed" : "failed");
   };
