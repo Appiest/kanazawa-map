@@ -11,6 +11,9 @@ const config: NextConfig = {
   experimental: {
     optimizePackageImports: ["@phosphor-icons/react"],
   },
+  async redirects() {
+    return [{ source: "/", destination: "/map", permanent: false }];
+  },
   async headers() {
     return [
       { source: "/((?!embed).*)", headers: pageHeaders(isDev) },

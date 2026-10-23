@@ -2,7 +2,7 @@
  * Where this app lives. next.config.ts reads BASE_PATH too, so every page,
  * asset and API route moves together when it changes.
  */
-export const BASE_PATH = "";
+export const BASE_PATH = "/counts";
 
 /** A path inside this app, for anything Next does not prefix by itself. */
 export function withBasePath(path: string): string {

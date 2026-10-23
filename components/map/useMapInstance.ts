@@ -5,6 +5,7 @@ import { AttributionControl, Map as MapLibreMap, addProtocol, setWorkerUrl } fro
 import { Protocol } from "pmtiles";
 import { buildMapStyle } from "@/styles/map-style";
 import { INITIAL_BOUNDS, MAX_BOUNDS } from "@/lib/config";
+import { withBasePath } from "@/lib/paths";
 import type { MarkerKind } from "@/styles/markers";
 import { renderMarker } from "./pin-icons";
 
@@ -18,7 +19,7 @@ let mapLibreConfigured = false;
  */
 function configureMapLibreOnce() {
   if (mapLibreConfigured) return;
-  setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
+  setWorkerUrl(withBasePath("/maplibre/maplibre-gl-worker.mjs"));
   addProtocol("pmtiles", new Protocol().tile);
   mapLibreConfigured = true;
 }
@@ -63,10 +64,15 @@ export function whenStyleReady(map: MapLibreMap, job: () => void) {
   map.on("idle", check);
 }
 
-function createMap(container: HTMLDivElement): MapLibreMap {
+/**
+ * `cooperativeGestures` is for the embed: a page that scrolls past the map
+ * keeps scrolling, and the map moves only with two fingers or a modifier key.
+ */
+function createMap(container: HTMLDivElement, cooperativeGestures: boolean): MapLibreMap {
   configureMapLibreOnce();
   const map = new MapLibreMap({
     container,
+    cooperativeGestures,
     style: buildMapStyle(),
     bounds: INITIAL_BOUNDS,
     fitBoundsOptions: { padding: { top: 48, bottom: 48, left: 48, right: 48 } },
@@ -85,14 +91,14 @@ function createMap(container: HTMLDivElement): MapLibreMap {
 }
 
 /** Holds the map in state so consumers re-render the moment it exists. */
-export function useMapInstance(container: React.RefObject<HTMLDivElement | null>) {
+export function useMapInstance(container: React.RefObject<HTMLDivElement | null>, cooperativeGestures = false) {
   const [map, setMap] = useState<MapLibreMap | null>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
 
   useEffect(() => {
     if (!container.current || mapRef.current) return;
 
-    const instance = createMap(container.current);
+    const instance = createMap(container.current, cooperativeGestures);
     mapRef.current = instance;
     setMap(instance);
 
@@ -109,7 +115,7 @@ export function useMapInstance(container: React.RefObject<HTMLDivElement | null>
       mapRef.current = null;
       setMap(null);
     };
-  }, [container]);
+  }, [container, cooperativeGestures]);
 
   return map;
 }
