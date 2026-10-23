@@ -2,7 +2,7 @@
 
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
 
-type Variant = "primary" | "quiet" | "icon";
+type Variant = "primary" | "quiet" | "icon" | "chip" | "chipSelected";
 
 const BASE =
   "inline-flex items-center justify-center gap-2 rounded-control font-medium " +
@@ -14,6 +14,9 @@ const VARIANTS: Record<Variant, string> = {
   primary: "bg-bg-inverse text-text-inverse px-4 h-10 text-sm hover:bg-paper-800 shadow-sm",
   quiet: "bg-transparent text-text-body px-3 h-9 text-sm hover:bg-bg-hover",
   icon: "bg-transparent text-text-secondary size-9 hover:bg-bg-hover hover:text-text-primary",
+  /** Floats over the map, so it carries its own paper and never lets a place name show through. */
+  chip: "bg-bg-surface text-text-body px-3 h-9 text-sm shadow-sm hover:bg-bg-hover",
+  chipSelected: "bg-bg-inverse text-text-inverse px-3 h-9 text-sm shadow-sm hover:bg-paper-800",
 };
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {

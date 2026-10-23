@@ -79,7 +79,7 @@ export function GatheringFlow({ map, onPost, onOpen }: Props) {
   if (step === "closed") {
     return (
       <div className="pointer-events-auto absolute right-4 bottom-20 z-10 sm:right-6 sm:bottom-24" data-touch-target>
-        <Button variant="quiet" onClick={start} className="bg-bg-surface shadow-sm">
+        <Button variant="chip" onClick={start}>
           <CalendarPlusIcon size={16} weight="regular" aria-hidden />
           Post a gathering
         </Button>
