@@ -1,6 +1,6 @@
 "use client";
 
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
 
 type Variant = "primary" | "quiet" | "icon";
 
@@ -26,5 +26,19 @@ export function Button({ variant = "primary", className = "", children, type = "
     <button type={type} className={`${BASE} ${VARIANTS[variant]} ${className}`} {...rest}>
       {children}
     </button>
+  );
+}
+
+type LinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
+  variant?: Exclude<Variant, "icon">;
+  children: ReactNode;
+};
+
+/** A link that looks like a button, for actions that go to another page. */
+export function ButtonLink({ variant = "primary", className = "", children, ...rest }: LinkProps) {
+  return (
+    <a className={`${BASE} ${VARIANTS[variant]} ${className}`} {...rest}>
+      {children}
+    </a>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { PinDetail } from "./repository";
+import type { PinDetail } from "./types";
+import { apiFetch } from "@/lib/http/client";
 
 type State =
   | { status: "idle" }
@@ -17,10 +18,10 @@ async function loadDetail(seq: number): Promise<PinDetail> {
   const cached = cache.get(seq);
   if (cached) return cached;
 
-  const response = await fetch(`/api/pins/${seq}`);
+  const response = await apiFetch(`/pins/${seq}`);
   if (!response.ok) {
     const body = await response.json().catch(() => null);
-    throw new Error(body?.error ?? `Pin ${seq} returned ${response.status}`);
+    throw new Error(body?.error ?? "That pin would not load.");
   }
 
   const pin = (await response.json()) as PinDetail;

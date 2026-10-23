@@ -1,6 +1,5 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { clientForToken, readOnlyClient } from "@/lib/supabase/server";
-import { enforceRateLimit } from "@/lib/pins/rateLimit";
+import { callerClient } from "@/lib/server/callerClient";
+import { assertNoDatabaseError } from "@/lib/server/failure";
 
 export type Gathering = {
   seq: number;
@@ -10,6 +9,7 @@ export type Gathering = {
   lng: number;
   lat: number;
   startsAt: string;
+  /** Worked out by the database, so the host's account id never leaves it. */
   mine: boolean;
 };
 
@@ -22,9 +22,6 @@ export type NewGathering = {
   startsAt: string;
 };
 
-/** Nothing further ahead than this; a map of next year is not a reason to return. */
-const HORIZON_DAYS = 60;
-
 type Row = {
   seq: number;
   title: string;
@@ -33,10 +30,10 @@ type Row = {
   lng: number;
   lat: number;
   starts_at: string;
-  host_id: string;
+  mine: boolean;
 };
 
-function toGathering(row: Row, viewerId: string | null): Gathering {
+function toGathering(row: Row): Gathering {
   return {
     seq: row.seq,
     title: row.title,
@@ -45,64 +42,35 @@ function toGathering(row: Row, viewerId: string | null): Gathering {
     lng: row.lng,
     lat: row.lat,
     startsAt: row.starts_at,
-    mine: row.host_id === viewerId,
+    mine: row.mine,
   };
 }
 
-function signedIn(accessToken: string): SupabaseClient {
-  const supabase = clientForToken(accessToken);
-  if (!supabase) throw new Error("Supabase is not configured");
-  return supabase;
-}
-
-/** What is still ahead. A gathering that has started is no longer an invitation. */
-export async function listUpcoming(accessToken: string | null): Promise<Gathering[]> {
-  const supabase = accessToken ? clientForToken(accessToken) : readOnlyClient();
-  if (!supabase) return [];
-
-  const horizon = new Date(Date.now() + HORIZON_DAYS * 86400000).toISOString();
-  const { data, error } = await supabase
-    .from("gatherings")
-    .select("seq, title, place, note, lng, lat, starts_at, host_id")
-    .gte("starts_at", new Date().toISOString())
-    .lte("starts_at", horizon)
-    .order("starts_at", { ascending: true })
-    .limit(200);
-
-  if (error) throw new Error(error.message);
-
-  const viewer = accessToken ? (await supabase.auth.getUser()).data.user?.id ?? null : null;
-  return ((data ?? []) as Row[]).map((row) => toGathering(row, viewer));
+/** What is still ahead, up to 60 days out. Signed-in people only. */
+export async function listUpcoming(accessToken: string): Promise<Gathering[]> {
+  const { data, error } = await callerClient(accessToken).rpc("upcoming_gatherings");
+  assertNoDatabaseError(error);
+  return ((data ?? []) as Row[]).map(toGathering);
 }
 
 export async function createGathering(accessToken: string, input: NewGathering): Promise<Gathering> {
-  const supabase = signedIn(accessToken);
-  const { data: session } = await supabase.auth.getUser();
-  const hostId = session.user?.id;
-  if (!hostId) throw new Error("That sign-in has expired");
-
-  await enforceRateLimit(supabase, hostId, "gathering.write");
-
-  const { data, error } = await supabase
-    .from("gatherings")
-    .insert({
-      host_id: hostId,
-      title: input.title,
-      place: input.place,
-      note: input.note,
-      lng: input.lng,
-      lat: input.lat,
-      starts_at: input.startsAt,
+  const { data, error } = await callerClient(accessToken)
+    .rpc("post_gathering", {
+      p_title: input.title,
+      p_place: input.place,
+      p_note: input.note,
+      p_lng: input.lng,
+      p_lat: input.lat,
+      p_starts_at: input.startsAt,
     })
-    .select("seq, title, place, note, lng, lat, starts_at, host_id")
-    .single();
-
-  if (error) throw new Error(error.message);
-  return toGathering(data as Row, hostId);
+    .single<Row>();
+  assertNoDatabaseError(error);
+  return toGathering(data as Row);
 }
 
-export async function cancelGathering(accessToken: string, seq: number): Promise<void> {
-  const supabase = signedIn(accessToken);
-  const { error } = await supabase.from("gatherings").delete().eq("seq", seq);
-  if (error) throw new Error(error.message);
+/** True when it was the caller's to call off and it is gone. */
+export async function cancelGathering(accessToken: string, seq: number): Promise<boolean> {
+  const { data, error } = await callerClient(accessToken).rpc("cancel_my_gathering", { p_seq: seq });
+  assertNoDatabaseError(error);
+  return data === true;
 }

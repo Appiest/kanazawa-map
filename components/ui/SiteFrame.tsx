@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ArrowLeftIcon } from "@phosphor-icons/react";
 import { SITE } from "@/lib/content";
 
 type Props = {
@@ -14,25 +15,30 @@ const FIT = {
   page: { outer: "min-h-dvh", inner: "flex-1" },
 } as const;
 
-function HostName() {
-  const name = <span className="text-lg font-semibold text-frame-text sm:text-xl">{SITE.host.name}</span>;
-  if (!SITE.host.href) return name;
+/** Back to the website this map lives inside, when its address is configured. */
+function BackToHost() {
+  if (!SITE.host.href) return null;
   return (
-    <a href={SITE.host.href} className="rounded-control hover:underline">
-      {name}
+    <a
+      href={SITE.host.href}
+      className="absolute left-2 flex h-10 items-center gap-1.5 rounded-control px-2 text-sm text-frame-text-muted hover:text-frame-text sm:left-4"
+    >
+      <ArrowLeftIcon size={16} aria-hidden />
+      <span>{SITE.sponsor}</span>
     </a>
   );
 }
 
 /**
  * The host site's band around every page, so anybody who arrives here from
- * Nikkei Counts can see they never left it.
+ * Nikkei Nexus can see they never left it.
  */
 export function SiteFrame({ children, footer, fit }: Props) {
   return (
     <div className={`flex flex-col bg-frame ${FIT[fit].outer}`}>
-      <header className="flex h-12 shrink-0 items-center justify-center px-4 sm:h-14">
-        <HostName />
+      <header className="relative flex h-12 shrink-0 items-center justify-center px-4 sm:h-14">
+        <BackToHost />
+        <span className="text-lg font-semibold text-frame-text sm:text-xl">{SITE.host.name}</span>
       </header>
       <div className={`relative overflow-hidden bg-bg-landing sm:mx-4 sm:rounded-sheet ${FIT[fit].inner}`}>
         {children}

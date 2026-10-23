@@ -1,8 +1,14 @@
+import { callerClient } from "@/lib/server/callerClient";
+import { assertNoDatabaseError, failureResponse } from "@/lib/server/failure";
+import { bearerToken } from "@/lib/server/request";
+import { isSupabaseConfigured } from "@/lib/supabase/server";
+
 /**
  * Turns a dropped tag into the city and the region around it, each with the
  * point a pin at that level is stored on. Proxied rather than called from the
  * browser so the request carries a real user agent and can be cached, which
- * Nominatim's usage policy asks for.
+ * Nominatim's usage policy asks for. Only signed-in people may use it, and
+ * each account gets 60 lookups a day, so it is nobody's free geocoder.
  */
 const NOMINATIM = "https://nominatim.openstreetmap.org/reverse";
 const USER_AGENT = "Kanazawa/0.1 (community map; contact brendan@g.studio)";
@@ -58,7 +64,20 @@ async function lookUp(lat: number, lng: number, level: Level): Promise<Area | nu
   }
 }
 
+/** Development without Supabase has no accounts, so there is nobody to count. */
+async function takeLookupAllowance(request: Request): Promise<void> {
+  if (!isSupabaseConfigured && process.env.NODE_ENV !== "production") return;
+  const { error } = await callerClient(bearerToken(request)).rpc("note_geocode_lookup");
+  assertNoDatabaseError(error);
+}
+
 export async function GET(request: Request) {
+  try {
+    await takeLookupAllowance(request);
+  } catch (cause) {
+    return failureResponse(cause);
+  }
+
   const params = new URL(request.url).searchParams;
   const rawLat = Number(params.get("lat"));
   const rawLng = Number(params.get("lng"));
@@ -76,5 +95,5 @@ export async function GET(request: Request) {
   const city = await lookUp(lat, lng, "city");
   const region = await lookUp(lat, lng, "region");
 
-  return Response.json({ city, region }, { headers: { "Cache-Control": "public, s-maxage=86400" } });
+  return Response.json({ city, region }, { headers: { "Cache-Control": "private, max-age=86400" } });
 }

@@ -2,12 +2,13 @@
 
 import { TrashSimpleIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/Field";
 import { TagPicker } from "@/components/ui/TagPicker";
 import { CONNECTIONS, type ConnectionId } from "@/lib/connections";
 import { ConnectionLine } from "@/components/ui/ConnectionLine";
 import { INTERESTS, type InterestId } from "@/lib/interests";
-import type { ChosenPrecision, OwnPin } from "@/lib/pins/repository";
+import type { ChosenPrecision, OwnPin } from "@/lib/pins/types";
 import { toggled } from "@/lib/vocabulary";
 
 const QUIET_LINK = "text-text-secondary underline decoration-paper-400 underline-offset-2";
@@ -64,6 +65,7 @@ export type EditValues = {
   note: string;
   instagram: string;
   website: string;
+  shareHandles: boolean;
   interests: InterestId[];
   connections: ConnectionId[];
 };
@@ -116,8 +118,7 @@ function EditFields({
         value={values.instagram}
         onChange={(v) => onChange({ instagram: v })}
         placeholder="yourhandle"
-        hint="Optional. Shown to people who are on the map."
-        maxLength={30}
+        maxLength={31}
       />
       <Field
         label="Website"
@@ -127,6 +128,12 @@ function EditFields({
         type="url"
         inputMode="url"
         maxLength={200}
+      />
+      <Checkbox
+        label="Show these to people on the map"
+        detail="Off means only you see them. Your email is never shown either way."
+        checked={values.shareHandles}
+        onChange={(checked) => onChange({ shareHandles: checked })}
       />
     </>
   );
@@ -227,8 +234,8 @@ export function RemoveStep({
     <>
       <h2 className="text-xl font-semibold text-text-primary">Take yourself off the map?</h2>
       <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-text-body">
-        Your tag comes down and your contact details are deleted. You can add a new pin whenever you
-        like.
+        Your tag comes down and your Instagram and website are deleted. You can add a new pin
+        whenever you like.
       </p>
       {error ? (
         <p role="alert" className="mt-3 text-sm text-clay-700">

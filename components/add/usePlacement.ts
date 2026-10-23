@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { cameraDuration } from "@/lib/motion";
+import { authorizedFetch } from "@/lib/http/client";
 
 export type Position = { lng: number; lat: number };
 
@@ -15,8 +16,8 @@ const UNKNOWN: Surroundings = { city: null, region: null };
 
 export async function describeSurroundings(lng: number, lat: number): Promise<Surroundings> {
   try {
-    const response = await fetch(`/api/geocode/reverse?lat=${lat}&lng=${lng}`);
-    if (!response.ok) return UNKNOWN;
+    const response = await authorizedFetch(`/geocode/reverse?lat=${lat}&lng=${lng}`);
+    if (!response?.ok) return UNKNOWN;
     return (await response.json()) as Surroundings;
   } catch {
     return UNKNOWN;

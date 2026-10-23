@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { GeoJSONSource, MapGeoJSONFeature, Map as MapLibreMap } from "maplibre-gl";
 import { PIN_SOURCE_ID } from "@/lib/config";
-import type { PinDetail } from "@/lib/pins/repository";
+import type { PinDetail } from "@/lib/pins/types";
+import { apiFetch } from "@/lib/http/client";
 import { cameraDuration } from "@/lib/motion";
 import { CLUSTER_LAYER_ID, PIN_LAYER_ID } from "./pin-layers";
 
@@ -20,7 +21,7 @@ type Target = {
 
 async function fetchNames(seqs: number[]): Promise<Map<number, PinDetail>> {
   if (seqs.length === 0) return new Map();
-  const response = await fetch(`/api/pins/details?seqs=${seqs.join(",")}`);
+  const response = await apiFetch(`/pins/details?seqs=${seqs.join(",")}`);
   if (!response.ok) return new Map();
   const body = (await response.json()) as { pins: PinDetail[] };
   return new Map(body.pins.map((pin) => [pin.seq, pin]));
